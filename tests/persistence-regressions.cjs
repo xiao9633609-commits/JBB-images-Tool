@@ -1,0 +1,60 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const root = path.resolve(__dirname, "..");
+const renderer = fs.readFileSync(path.join(root, "renderer", "index.html"), "utf8");
+const main = fs.readFileSync(path.join(root, "electron", "main.cjs"), "utf8");
+const preload = fs.readFileSync(path.join(root, "electron", "preload.cjs"), "utf8");
+
+assert.match(renderer, /async getFileHandle\(filename, options = \{\}\)/);
+assert.match(renderer, /if \(!exists && !options\.create\) throw new DOMException\("文件不存在", "NotFoundError"\)/);
+assert.match(renderer, /function getProjectSnapshotTimestamp\(snapshot\)/);
+assert.match(renderer, /function isUsableProjectSnapshot\(snapshot\)/);
+assert.match(renderer, /function chooseNewestProjectSnapshot\(localSnapshot, storedSnapshot\)/);
+assert.match(renderer, /const usableLocalSnapshot = isUsableProjectSnapshot\(localSnapshot\) \? localSnapshot : null/);
+assert.match(renderer, /getProjectSnapshotTimestamp\(usableLocalSnapshot\) >= getProjectSnapshotTimestamp\(usableStoredSnapshot\)/);
+assert.match(renderer, /const snapshot = \{ schemaVersion: 1, savedAt: new Date\(\)\.toISOString\(\), activeProjectId:/);
+assert.match(renderer, /queueStorageWrite\(\(\) => window\.jbb\.storage\.writeJson\("projects\.json", snapshot\)\)/);
+assert.match(renderer, /const settingsSaved = await saveSettings\(\)/);
+assert.match(renderer, /async function writeJsonFile[\s\S]*?await writable\.close\(\);[\s\S]*?return true;/);
+assert.match(renderer, /async function writeTextFile[\s\S]*?await writable\.close\(\);[\s\S]*?return true;/);
+assert.match(renderer, /if \(settingsSaved === false\) throw new Error/);
+assert.match(renderer, /if \(getCredentialMode\(\) === "persistent"\)/);
+assert.match(renderer, /finally \{\s*setSettingsSavingState\(false\);\s*setConfigDrawer\(false\);/);
+assert.match(renderer, /旧版记录迁移（可选）/);
+assert.match(renderer, /一次性复制历史任务与图片，不会修改当前设置、接口地址、API Key 或数据目录/);
+assert.match(renderer, /if \(picked\?\.canceled\) \{\s*setLegacyImportStatus\(\);/);
+assert.match(renderer, /const targetProjectId = String\(options\.projectId \|\| ""\)/);
+assert.match(renderer, /projectId: targetProjectId \|\| metadata\.projectId \|\| state\.activeProjectId/);
+assert.match(renderer, /function getAvailableLegacyImportProjectName\(\)/);
+assert.match(renderer, /const baseName = "旧版导入"/);
+assert.match(renderer, /function ensureLegacyImportProject\(importContext\)/);
+assert.match(renderer, /if \(!importedCount\) return 0/);
+assert.match(renderer, /restoreTaskHistory\(result\.taskHistory, \{ merge: true, projectId: project\.id \}\)/);
+assert.match(renderer, /persistTaskHistory\(\),\s*persistProjectState\(\)/);
+assert.match(renderer, /const importContext = \{ project: null, name: getAvailableLegacyImportProjectName\(\) \}/);
+assert.match(renderer, /已保存到项目“\$\{importContext\.project\.name\}”/);
+assert.match(renderer, /queueStorageWrite\(\(\) => window\.jbb\.storage\.writeJson\("canvases\.json", payload\)\)/);
+assert.match(renderer, /async function flushApplicationStateBeforeClose\(\)/);
+assert.match(renderer, /const removePrepareCloseListener = window\.jbb\?\.window\?\.onPrepareClose/);
+assert.match(renderer, /if \(applicationInitializationPromise && !applicationStateHydrated\)/);
+assert.match(renderer, /if \(!applicationStateHydrated\)[\s\S]*?跳过关闭前写入以避免覆盖已有数据/);
+assert.match(renderer, /const results = await Promise\.allSettled\(saveOperations\)/);
+assert.match(renderer, /await state\.storageWriteQueue\.catch\(\(\) => false\)/);
+assert.match(renderer, /await window\.jbb\?\.window\?\.confirmClose\?\.\(\)/);
+assert.match(renderer, /applicationInitializationPromise = initializeApplication\(\)[\s\S]*?applicationStateHydrated = true/);
+assert.match(renderer, /await restoreStoredDirectory\(\);\s*applicationStateHydrated = true/);
+assert.doesNotMatch(renderer, /历史目录尚未授权/);
+assert.doesNotMatch(renderer, /请重新授权历史数据目录/);
+
+assert.match(main, /mainWindow\.webContents\.send\("window:prepare-close"\)/);
+assert.match(main, /ipcMain\.handle\("window:confirm-close"/);
+assert.match(main, /if \(!mainWindowClosePending \|\| !mainWindow \|\| mainWindow\.isDestroyed\(\)\) return false/);
+assert.match(preload, /confirmClose: \(\) => ipcRenderer\.invoke\("window:confirm-close"\)/);
+assert.match(preload, /onPrepareClose: \(callback\) =>/);
+
+assert.match(renderer, /:root\[data-skin="banana-green"\] \.composer-actions \.generate-button:not\(:disabled\) \{[\s\S]*?background: var\(--accent\);[\s\S]*?color: var\(--accent-ink\);/);
+assert.match(renderer, /:root\[data-skin="banana-green"\] \.composer-actions \.generate-button:disabled \{[\s\S]*?color: var\(--faint\);/);
+
+process.stdout.write("persistence regression tests passed\n");

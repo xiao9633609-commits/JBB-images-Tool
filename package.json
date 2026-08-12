@@ -1,0 +1,100 @@
+{
+  "name": "jbbimg-desktop",
+  "version": "0.3.108",
+  "private": true,
+  "type": "module",
+  "description": "金贝贝生图工具桌面版",
+  "license": "MIT",
+  "author": "xiao9633609-commits",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiao9633609-commits/JBB-images-Tool.git"
+  },
+  "homepage": "https://github.com/xiao9633609-commits/JBB-images-Tool#readme",
+  "bugs": {
+    "url": "https://github.com/xiao9633609-commits/JBB-images-Tool/issues"
+  },
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on tcp:5174 && electron . --dev\"",
+    "build": "vite build",
+    "test:storage": "node tests/storage.cjs",
+    "test:ui": "node tests/ui-regressions.cjs",
+    "test:image-loading": "node tests/image-loading-regressions.cjs",
+    "test:legacy-import": "node tests/legacy-import.cjs",
+    "test:persistence": "node tests/persistence-regressions.cjs",
+    "test:release": "node tests/profile-reset.cjs && node tests/installer-single-instance.cjs && node tests/jbb-route-fallback.cjs && node tests/persistence-regressions.cjs",
+    "dist:win": "npm run build && electron-builder --win nsis --x64",
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest",
+    "wait-on": "latest"
+  },
+  "build": {
+    "appId": "cn.jbbimg.desktop",
+    "productName": "金贝贝生图工具",
+    "asar": true,
+    "compression": "maximum",
+    "directories": {
+      "output": "../../output/installer-optimized/0.3.108"
+    },
+    "extraResources": [
+      {
+        "from": "resources/inspiration-seed",
+        "to": "inspiration-seed",
+        "filter": [
+          "inspiration-feed.json",
+          "inspiration-sync-state.json"
+        ]
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "renderer/public/jbb-icon.png",
+      "package.json",
+      "!**/*.map",
+      "!data/**/*",
+      "!outputs/**/*",
+      "!logs/**/*",
+      "!docs/**/*",
+      "!raw/**/*",
+      "!**/.env*",
+      "!**/*cache*/**/*"
+    ],
+    "win": {
+      "executableName": "JBBimg",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "renderer/public/jbb-icon.png",
+      "artifactName": "JBBimg-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "guid": "7b141cc7-d57c-5908-af89-47db935b5de0",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "shortcutName": "金贝贝生图工具",
+      "uninstallDisplayName": "金贝贝生图工具",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

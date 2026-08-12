@@ -1,0 +1,53 @@
+# Dependencies and build output
+node_modules/
+dist/
+output/
+installer-optimized/
+
+# Local application data
+data/
+outputs/
+logs/
+cache/
+**/*cache*/
+
+# Credentials and environment files
+.env
+.env.*
+!.env.example
+
+# Runtime state and generated records
+tasks.json
+projects.json
+canvases.json
+settings.json
+output-directory.json
+thumbnail-cache/
+canvas-assets/
+migrations/
+
+# Local inspiration sync results
+inspiration-feed.json
+inspiration-sync-state.json
+inspiration-sync.log
+!resources/inspiration-seed/inspiration-feed.json
+!resources/inspiration-seed/inspiration-sync-state.json
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Packaged applications and archives
+*.exe
+*.msi
+*.zip
+*.7z
+*.rar
+*.asar
