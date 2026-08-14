@@ -1,0 +1,99 @@
+name: Build macOS
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build macOS ${{ matrix.arch }}
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm64
+          - x64
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run release checks
+        run: |
+          npm run test:release-check
+          npm run test:release
+          npm run test:storage
+          npm run test:network
+          npm run test:image-loading
+
+      - name: Build renderer
+        run: npm run build
+
+      - name: Package macOS application
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: >-
+          npx electron-builder
+          --mac dmg zip
+          --${{ matrix.arch }}
+          --publish never
+          --config.mac.identity=-
+          --config.mac.hardenedRuntime=false
+
+      - name: Upload macOS packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: JBBimg-macOS-${{ matrix.arch }}
+          path: |
+            output/installer/*.dmg
+            output/installer/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    name: Attach packages to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download macOS packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: JBBimg-macOS-*
+          path: release
+          merge-multiple: true
+
+      - name: Create release when missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists."
+          else
+            gh release create "$GITHUB_REF_NAME" --title "JBBimg $GITHUB_REF_NAME" --generate-notes
+          fi
+
+      - name: Upload packages to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" release/* --clobber

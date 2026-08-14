@@ -28,6 +28,7 @@
     "test:persistence": "node tests/persistence-regressions.cjs",
     "test:release": "node tests/profile-reset.cjs && node tests/installer-single-instance.cjs && node tests/jbb-route-fallback.cjs && node tests/persistence-regressions.cjs",
     "dist:win": "npm run build && electron-builder --win nsis --x64",
+    "dist:mac": "npm run build && electron-builder --mac dmg zip --arm64 --x64",
     "preview": "vite preview --host 127.0.0.1",
     "start": "electron ."
   },
@@ -49,7 +50,7 @@
     "asar": true,
     "compression": "maximum",
     "directories": {
-      "output": "../../output/installer-optimized/0.3.109"
+      "output": "output/installer"
     },
     "extraResources": [
       {
@@ -87,6 +88,47 @@
       ],
       "icon": "renderer/public/jbb-icon.png",
       "artifactName": "JBBimg-Setup-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "icon": "renderer/public/jbb-icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "JBBimg-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "金贝贝生图工具 ${version}",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 150,
+          "y": 190,
+          "type": "file"
+        },
+        {
+          "x": 390,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "nsis": {
       "guid": "7b141cc7-d57c-5908-af89-47db935b5de0",
