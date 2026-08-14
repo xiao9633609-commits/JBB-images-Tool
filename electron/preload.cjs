@@ -50,6 +50,8 @@ contextBridge.exposeInMainWorld("jbb", {
   release: {
     getProfileReset: () => ipcRenderer.invoke("release:get-profile-reset"),
     completeProfileReset: () => ipcRenderer.invoke("release:complete-profile-reset"),
+    checkUpdate: () => ipcRenderer.invoke("release:check-update"),
+    openInstaller: () => ipcRenderer.invoke("release:open-installer"),
   },
   image: {
     copy: (input) => ipcRenderer.invoke("image:copy", input),
@@ -63,6 +65,12 @@ contextBridge.exposeInMainWorld("jbb", {
     saveConnection: (input) => ipcRenderer.invoke("settings:save-connection", input),
     clearLocal: () => ipcRenderer.invoke("settings:clear-local"),
     listModels: (input) => ipcRenderer.invoke("settings:list-models", input),
+  },
+  taskLogs: {
+    list: () => ipcRenderer.invoke("task-logs:list"),
+    clear: () => ipcRenderer.invoke("task-logs:clear"),
+    create: (input) => ipcRenderer.invoke("task-logs:create", input),
+    update: (id, patch) => ipcRenderer.invoke("task-logs:update", { id, patch }),
   },
   network: {
     probe: () => ipcRenderer.invoke("network:probe"),

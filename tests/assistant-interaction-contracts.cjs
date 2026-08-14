@@ -76,6 +76,31 @@ const batchSubmitIndex = assistantRequest.indexOf("submitAssistantTaskSet(pendin
 assert.ok(guardIndex >= 0 && guardIndex < singleSubmitIndex, "single-task submission must run after the local intent guard");
 assert.ok(guardIndex < batchSubmitIndex, "batch submission must run after the local intent guard");
 
+// Canvas one-click optimization uses failures from only the directly connected control nodes.
+const canvasOptimizationContext = sectionBetween(
+  html,
+  "function getCanvasPromptOptimizationGeneratorIds(promptNodeId)",
+  "function abortCanvasPromptOptimizations(itemIds = null)"
+);
+assert.match(canvasOptimizationContext, /edge\.from === promptNodeId/);
+assert.match(canvasOptimizationContext, /item\.taskSourceNodeId === generatorId/);
+assert.match(canvasOptimizationContext, /\["failed", "timeout"\]\.includes\(item\.taskState\)/);
+assert.match(canvasOptimizationContext, /window\.jbb\?\.taskLogs\?\.list/);
+assert.match(canvasOptimizationContext, /log\?\.config\?\.requestPrompt/);
+assert.match(canvasOptimizationContext, /接口错误：\$\{context\.message\}/);
+assert.match(canvasOptimizationContext, /Gemini Omni Flash \/ Veo 3\.1 Fast/);
+assert.match(canvasOptimizationContext, /vertical、horizontal、portrait、landscape、widescreen、close-up/);
+const canvasOptimizationRequest = sectionBetween(
+  html,
+  "async function optimizeCanvasPromptNode(item, textarea, button)",
+  "function resetPromptAssistant()"
+);
+assert.match(canvasOptimizationRequest, /await getCanvasPromptOptimizationErrorContexts\(item\.id\)/);
+assert.match(canvasOptimizationRequest, /接口错误修正规则/);
+assert.match(canvasOptimizationRequest, /关联控制节点最近一次失败信息/);
+assert.match(canvasOptimizationRequest, /revisedPrompt = sanitizeStructuredVideoPrompt\(revisedPrompt\)/);
+assert.match(canvasOptimizationRequest, /已根据最近错误优化提示词/);
+
 // Local intent matrix: model output alone must never authorize generation.
 const expectedIntents = [
   ["帮我生成一张牛马上班图的提示词", true, false, false],

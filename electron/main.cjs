@@ -4,6 +4,8 @@ const fs = require("node:fs/promises");
 const crypto = require("node:crypto");
 const { pathToFileURL } = require("node:url");
 const { createStorage } = require("./storage.cjs");
+const { createRequestLogService } = require("./request-logs.cjs");
+const { fetchLatestRelease, isAllowedReleaseUrl, RELEASES_URL } = require("./release-check.cjs");
 const { inspectLegacyImport, importLegacyHistory } = require("./legacy-import.cjs");
 const { createInspirationService } = require("./inspiration.cjs");
 const { migrateLegacy } = require("./migrate.cjs");
@@ -33,6 +35,7 @@ const dataRoot = app.isPackaged ? path.join(packagedUserRoot, "data") : path.joi
 const outputsRoot = app.isPackaged ? path.join(app.getPath("pictures"), "JBBimg") : path.join(projectRoot, "outputs");
 const logsRoot = app.isPackaged ? path.join(packagedUserRoot, "logs") : path.join(projectRoot, "logs");
 const storage = createStorage({ dataRoot, outputsRoot, logsRoot });
+const requestLogs = createRequestLogService({ dataRoot });
 const thumbnailCacheRoot = path.join(dataRoot, "thumbnail-cache");
 const THUMBNAIL_EDGE = 448;
 const THUMBNAIL_QUALITY = 82;
@@ -43,7 +46,22 @@ let activeThumbnailJobs = 0;
 let mainWindow;
 let focusMainWindowWhenReady = false;
 let releaseProfileResetPending = false;
+let latestReleaseCheck = null;
 const activeRequests = new Map();
+const SAFE_CONNECT_RETRY_CODES = new Set([
+  "ERR_PROXY_CONNECTION_FAILED",
+  "ERR_NAME_NOT_RESOLVED",
+  "ERR_CONNECTION_REFUSED",
+  "ERR_ADDRESS_UNREACHABLE",
+  "ERR_NETWORK_CHANGED",
+  "ERR_INTERNET_DISCONNECTED"
+]);
+const SAFE_POST_RETRY_CODES = new Set([
+  "ERR_PROXY_CONNECTION_FAILED",
+  "ERR_NAME_NOT_RESOLVED",
+  "ERR_CONNECTION_REFUSED",
+  "ERR_ADDRESS_UNREACHABLE"
+]);
 const DEFAULT_WINDOW_SIZE = Object.freeze({ width: 1360, height: 760 });
 const MINIMUM_WINDOW_SIZE = Object.freeze({ width: 1040, height: 680 });
 const WINDOW_EDGE_MARGIN = 24;
@@ -114,7 +132,7 @@ async function listModels(input = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20000);
   try {
-    const response = await fetch(`${baseUrl}/models`, { headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" }, signal: controller.signal });
+    const response = await net.fetch(`${baseUrl}/models`, { headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" }, signal: controller.signal });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) return { ok: false, status: response.status, baseUrl, error: payload?.error?.message || `读取模型失败，HTTP ${response.status}` };
     const source = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
@@ -124,6 +142,37 @@ async function listModels(input = {}) {
   } finally {
     clearTimeout(timer);
   }
+}
+function getNetworkErrorDetails(error) {
+  const cause = error?.cause && typeof error.cause === "object" ? error.cause : {};
+  const message = String(error?.message || "网络请求失败");
+  const messageCode = message.match(/(?:net::)?(ERR_[A-Z0-9_]+)/)?.[1] || "";
+  return {
+    name: String(error?.name || "Error"),
+    message,
+    code: String(error?.code || cause.code || messageCode),
+    errno: String(error?.errno || cause.errno || ""),
+    syscall: String(error?.syscall || cause.syscall || ""),
+    address: String(error?.address || cause.address || ""),
+    port: Number(error?.port || cause.port || 0)
+  };
+}
+function shouldRetryConnectionError(error, method = "GET") {
+  const details = getNetworkErrorDetails(error);
+  if (!SAFE_CONNECT_RETRY_CODES.has(details.code)) return false;
+  const normalizedMethod = String(method || "GET").toUpperCase();
+  if (normalizedMethod === "POST") return SAFE_POST_RETRY_CODES.has(details.code);
+  return ["GET", "HEAD", "OPTIONS"].includes(normalizedMethod);
+}
+async function resolveSystemProxyRoute(url) {
+  try {
+    return String(await session.defaultSession.resolveProxy(String(url)) || "DIRECT");
+  } catch (error) {
+    return `UNKNOWN (${getNetworkErrorDetails(error).message})`;
+  }
+}
+async function fetchWithSystemProxy(url, options = {}) {
+  return net.fetch(String(url), options);
 }
 function normalizeImageFilename(input = "") {
   if (input === null || input === undefined) return "";
@@ -145,6 +194,16 @@ function resolveImagePath(filename = "") {
   const candidate = path.resolve(root, normalized);
   const relative = path.relative(root, candidate);
   if (relative && (relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))) throw new Error("图片路径越界");
+  return candidate;
+}
+
+function resolveVideoPath(filename = "") {
+  const root = path.resolve(storage.videosRoot);
+  const normalized = normalizeImageFilename(filename);
+  if (!normalized) return root;
+  const candidate = path.resolve(root, normalized);
+  const relative = path.relative(root, candidate);
+  if (relative && (relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))) throw new Error("视频路径越界");
   return candidate;
 }
 
@@ -274,6 +333,38 @@ function registerImageProtocol() {
       if (requestUrl.hostname !== "local") return new Response("Not found", { status: 404 });
       const filename = getImageFilename(requestUrl.searchParams.get("file") || "");
       if (!filename) return new Response("Missing image", { status: 400 });
+      const mediaType = requestUrl.searchParams.get("media") === "video" ? "video" : "image";
+      if (mediaType === "video") {
+        resolveVideoPath(filename);
+        const result = await storage.readBinary({ mediaType: "video", filename });
+        if (!result?.data) return new Response("Video not found", { status: 404 });
+        const bytes = new Uint8Array(result.data);
+        const range = String(request.headers.get("range") || "").match(/^bytes=(\d*)-(\d*)$/i);
+        const commonHeaders = {
+          "Content-Type": result.mimeType || "video/mp4",
+          "Cache-Control": "no-store",
+          "Accept-Ranges": "bytes"
+        };
+        if (range) {
+          const start = range[1] ? Number(range[1]) : 0;
+          const end = range[2] ? Math.min(Number(range[2]), bytes.byteLength - 1) : bytes.byteLength - 1;
+          if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || start > end || start >= bytes.byteLength) {
+            return new Response(null, { status: 416, headers: { ...commonHeaders, "Content-Range": `bytes */${bytes.byteLength}` } });
+          }
+          const chunk = bytes.slice(start, end + 1);
+          return new Response(request.method === "HEAD" ? null : chunk, {
+            status: 206,
+            headers: {
+              ...commonHeaders,
+              "Content-Length": String(chunk.byteLength),
+              "Content-Range": `bytes ${start}-${end}/${bytes.byteLength}`
+            }
+          });
+        }
+        return new Response(request.method === "HEAD" ? null : bytes, {
+          headers: { ...commonHeaders, "Content-Length": String(bytes.byteLength) }
+        });
+      }
       const sourcePath = resolveImagePath(filename);
       await assertPathInsideImageRoot(sourcePath);
       const requestedPath = requestUrl.pathname === "/thumbnail"
@@ -677,6 +768,45 @@ function registerIpc() {
     releaseProfileResetPending = false;
     return result;
   });
+  ipcMain.handle("release:check-update", async () => {
+    try {
+      latestReleaseCheck = await fetchLatestRelease({
+        currentVersion: app.getVersion(),
+        fetchImpl: (url, options) => net.fetch(url, options)
+      });
+      return latestReleaseCheck;
+    } catch (error) {
+      const message = error?.name === "AbortError" ? "版本检测超时，请稍后重试。" : (error.message || "版本检测失败");
+      await fs.mkdir(logsRoot, { recursive: true }).catch(() => {});
+      await fs.appendFile(
+        path.join(logsRoot, "version-check.log"),
+        `${new Date().toISOString()} ${error?.name || "Error"} ${message}\n`
+      ).catch(() => {});
+      return {
+        ok: false,
+        currentVersion: app.getVersion(),
+        error: message
+      };
+    }
+  });
+  ipcMain.handle("release:open-installer", async () => {
+    if (!latestReleaseCheck) {
+      try {
+        latestReleaseCheck = await fetchLatestRelease({
+          currentVersion: app.getVersion(),
+          fetchImpl: (url, options) => net.fetch(url, options)
+        });
+      } catch {
+        latestReleaseCheck = null;
+      }
+    }
+    const target = latestReleaseCheck?.updateAvailable && latestReleaseCheck?.installer?.url
+      ? latestReleaseCheck.installer.url
+      : latestReleaseCheck?.releaseUrl || RELEASES_URL;
+    if (!isAllowedReleaseUrl(target)) return { ok: false, error: "安装包地址校验失败" };
+    await shell.openExternal(target);
+    return { ok: true, url: target };
+  });
   ipcMain.handle("storage:read-json", (_event, name, fallback) => storage.readJson(name, fallback)); ipcMain.handle("storage:write-json", (_event, name, value) => storage.writeJson(name, value)); ipcMain.handle("storage:read-text", (_event, name, fallback) => storage.readText(name, fallback)); ipcMain.handle("storage:write-text", (_event, name, value) => storage.writeText(name, value)); ipcMain.handle("storage:remove-data", (_event, name) => storage.removeData(name)); ipcMain.handle("storage:read-binary", (_event, input) => storage.readBinary(input)); ipcMain.handle("storage:write-binary", (_event, input) => storage.writeBinary(input)); ipcMain.handle("storage:remove-binary", async (_event, input) => { const removed = await storage.removeBinary(input); if (String(input?.mediaType || "image").toLowerCase() === "image") await removeImageThumbnail(input?.filename).catch(() => {}); return removed; }); ipcMain.handle("storage:exists-binary", (_event, input) => storage.existsBinary(input)); ipcMain.handle("storage:get-roots", () => storage.getRoots());
   ipcMain.handle("storage:choose-output-directory", async () => {
     const result = await dialog.showOpenDialog(mainWindow, { title: "选择图片和视频输出文件夹", properties: ["openDirectory", "createDirectory"] });
@@ -721,9 +851,123 @@ function registerIpc() {
   ipcMain.handle("network:probe", async () => ({ ok: true, checkedAt: new Date().toISOString() }));
   ipcMain.handle("inspiration:sync", (_event, input) => inspiration.sync(Boolean(input?.force))); ipcMain.handle("inspiration:cancel", () => inspiration.cancel()); ipcMain.handle("inspiration:reload", () => inspiration.reload()); ipcMain.handle("inspiration:get-status", () => inspiration.getStatus()); ipcMain.handle("inspiration:get-sources", () => inspiration.getSources());
   ipcMain.handle("inspiration:open-source", async (_event, input) => { try { const url = normalizeExternalSourceUrl(input?.url); await shell.openExternal(url); return { ok: true }; } catch (error) { return { ok: false, error: error.message || "无法打开来源" }; } });
-  ipcMain.handle("network:request", async (_event, input = {}) => { const requestId = String(input.requestId || crypto.randomUUID()); const controller = new AbortController(); activeRequests.set(requestId, controller); try { const headers = { ...(input.headers || {}) }; let body = input.body; if (Array.isArray(input.formDataEntries)) { const form = new FormData(); for (const entry of input.formDataEntries) { if (entry?.kind === "file") { const bytes = entry.data instanceof ArrayBuffer ? entry.data : Uint8Array.from(entry.data || []); form.append(entry.name, new Blob([bytes], { type: entry.mimeType || "application/octet-stream" }), entry.filename || "upload.bin"); } else form.append(entry.name, String(entry.value ?? "")); } body = form; delete headers["Content-Type"]; delete headers["content-type"]; } const response = await fetch(String(input.url), { method: String(input.method || "GET"), headers, body, signal: controller.signal }); return { ok: response.ok, status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()), body: await response.text() }; } catch (error) { return error.name === "AbortError" ? { aborted: true, reason: "canceled" } : { transportError: error.message }; } finally { activeRequests.delete(requestId); } });
-  ipcMain.handle("network:cancel", (_event, id) => { const controller = activeRequests.get(String(id)); if (!controller) return false; controller.abort(); return true; }); ipcMain.handle("network:read-image", async (_event, { src } = {}) => { try { const response = await fetch(String(src), { cache: "no-store" }); if (!response.ok) return { transportError: `HTTP ${response.status}` }; return { data: await response.arrayBuffer(), mimeType: response.headers.get("content-type") || "application/octet-stream" }; } catch (error) { return { transportError: error.message }; } });
-  ipcMain.handle("network:save-image", async (_event, input = {}) => { try { let bytes; let mimeType = input.mimeType || "image/png"; if (input.data) bytes = Buffer.from(input.data instanceof ArrayBuffer ? new Uint8Array(input.data) : input.data); else { const response = await fetch(String(input.src)); if (!response.ok) throw new Error(`图片下载失败，HTTP ${response.status}`); mimeType = response.headers.get("content-type") || mimeType; bytes = Buffer.from(await response.arrayBuffer()); } const filename = String(input.filename || "image.png").replace(/[<>:"/\\|?*\x00-\x1F]/g, "_"); const result = await dialog.showSaveDialog(mainWindow, { title: "保存生成图片", defaultPath: path.join(storage.imagesRoot, filename), filters: [{ name: "Image", extensions: [path.extname(filename).slice(1) || "png"] }] }); if (result.canceled || !result.filePath) return { canceled: true }; await fs.mkdir(path.dirname(result.filePath), { recursive: true }); await fs.writeFile(result.filePath, bytes); return { saved: true, filePath: result.filePath }; } catch (error) { return { saved: false, error: error.message }; } });
+  ipcMain.handle("task-logs:list", () => requestLogs.list());
+  ipcMain.handle("task-logs:clear", () => requestLogs.clear());
+  ipcMain.handle("task-logs:create", (_event, input) => requestLogs.create(input));
+  ipcMain.handle("task-logs:update", (_event, { id, patch } = {}) => requestLogs.update(id, patch));
+  ipcMain.handle("network:request", async (_event, input = {}) => {
+    const requestId = String(input.requestId || crypto.randomUUID());
+    const logId = String(input.logId || "");
+    const controller = new AbortController();
+    activeRequests.set(requestId, controller);
+    try {
+      const headers = { ...(input.headers || {}) };
+      let body = input.body;
+      if (Array.isArray(input.formDataEntries)) {
+        const form = new FormData();
+        for (const entry of input.formDataEntries) {
+          if (entry?.kind === "file") {
+            const bytes = entry.data instanceof ArrayBuffer ? entry.data : Uint8Array.from(entry.data || []);
+            form.append(entry.name, new Blob([bytes], { type: entry.mimeType || "application/octet-stream" }), entry.filename || "upload.bin");
+          } else form.append(entry.name, String(entry.value ?? ""));
+        }
+        body = form;
+        delete headers["Content-Type"];
+        delete headers["content-type"];
+      }
+      const method = String(input.method || "GET").toUpperCase();
+      const proxyRoute = await resolveSystemProxyRoute(input.url);
+      const maxAttempts = 2;
+      for (let retryIndex = 0; retryIndex < maxAttempts; retryIndex += 1) {
+        const attemptRequestId = retryIndex === 0 ? requestId : `${requestId}-retry-${retryIndex}`;
+        const attemptStartedAt = Date.now();
+        if (logId) await requestLogs.startAttempt(logId, {
+          ...input,
+          requestId: attemptRequestId,
+          proxyRoute,
+          retryIndex
+        }, input.logSeed || {}).catch(() => {});
+        try {
+          const response = await fetchWithSystemProxy(input.url, { method, headers, body, signal: controller.signal });
+          const result = {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: await response.text(),
+            proxyRoute
+          };
+          if (logId) await requestLogs.finishAttempt(logId, attemptRequestId, {
+            response: { ...result, durationMs: Date.now() - attemptStartedAt }
+          }).catch(() => {});
+          return result;
+        } catch (error) {
+          const details = getNetworkErrorDetails(error);
+          const retrying = input.retryConnection !== false && retryIndex === 0 && !controller.signal.aborted && shouldRetryConnectionError(error, method);
+          if (logId) await requestLogs.finishAttempt(logId, attemptRequestId, {
+            error: { ...details, proxyRoute, retrying, durationMs: Date.now() - attemptStartedAt }
+          }).catch(() => {});
+          if (retrying) {
+            await new Promise((resolve) => setTimeout(resolve, 650));
+            continue;
+          }
+          if (error.name === "AbortError") return { aborted: true, reason: "canceled", proxyRoute };
+          return { transportError: details.message, transportDetails: details, proxyRoute };
+        }
+      }
+      return { transportError: "网络请求失败", proxyRoute };
+    } catch (error) {
+      const details = getNetworkErrorDetails(error);
+      return error.name === "AbortError"
+        ? { aborted: true, reason: "canceled" }
+        : { transportError: details.message, transportDetails: details };
+    } finally {
+      activeRequests.delete(requestId);
+    }
+  });
+  ipcMain.handle("network:cancel", (_event, id) => { const controller = activeRequests.get(String(id)); if (!controller) return false; controller.abort(); return true; });
+  ipcMain.handle("network:read-image", async (_event, { src, logId, headers: requestHeaders } = {}) => {
+    const startedAt = Date.now();
+    try {
+      const proxyRoute = await resolveSystemProxyRoute(src);
+      const response = await fetchWithSystemProxy(src, { cache: "no-store", headers: requestHeaders || {} });
+      const headers = Object.fromEntries(response.headers.entries());
+      if (!response.ok) {
+        const error = `HTTP ${response.status}`;
+        if (logId) await requestLogs.addDownload(logId, {
+          url: src,
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+          durationMs: Date.now() - startedAt,
+          proxyRoute,
+          error
+        }).catch(() => {});
+        return { transportError: error };
+      }
+      const data = await response.arrayBuffer();
+      const mimeType = response.headers.get("content-type") || "application/octet-stream";
+      if (logId) await requestLogs.addDownload(logId, {
+        url: src,
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+        mimeType,
+        bytes: data.byteLength,
+        durationMs: Date.now() - startedAt,
+        proxyRoute
+      }).catch(() => {});
+      return { data, mimeType };
+    } catch (error) {
+      if (logId) await requestLogs.addDownload(logId, {
+        url: src,
+        durationMs: Date.now() - startedAt,
+        error: error.message
+      }).catch(() => {});
+      return { transportError: error.message };
+    }
+  });
+  ipcMain.handle("network:save-image", async (_event, input = {}) => { try { let bytes; let mimeType = input.mimeType || "image/png"; if (input.data) bytes = Buffer.from(input.data instanceof ArrayBuffer ? new Uint8Array(input.data) : input.data); else { const response = await fetchWithSystemProxy(input.src); if (!response.ok) throw new Error(`图片下载失败，HTTP ${response.status}`); mimeType = response.headers.get("content-type") || mimeType; bytes = Buffer.from(await response.arrayBuffer()); } const filename = String(input.filename || "image.png").replace(/[<>:"/\\|?*\x00-\x1F]/g, "_"); const result = await dialog.showSaveDialog(mainWindow, { title: "保存生成图片", defaultPath: path.join(storage.imagesRoot, filename), filters: [{ name: "Image", extensions: [path.extname(filename).slice(1) || "png"] }] }); if (result.canceled || !result.filePath) return { canceled: true }; await fs.mkdir(path.dirname(result.filePath), { recursive: true }); await fs.writeFile(result.filePath, bytes); return { saved: true, filePath: result.filePath }; } catch (error) { return { saved: false, error: error.message }; } });
   ipcMain.handle("image:copy", async (_event, input = {}) => {
     try {
       const bytes = input.data instanceof ArrayBuffer
@@ -792,6 +1036,7 @@ if (!hasSingleInstanceLock) {
       ]);
     }
     await storage.ensure();
+    await requestLogs.interruptRunning().catch(() => 0);
     await fs.mkdir(thumbnailCacheRoot, { recursive: true });
     registerImageProtocol();
     if (!app.isPackaged) {

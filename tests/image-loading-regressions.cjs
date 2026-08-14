@@ -32,6 +32,7 @@ assert.match(resultCardSource, /img\.onerror = showImageError/);
 assert.match(resultCardSource, /prepareGalleryCardForReveal\(article\.closest\("\.task-set-stack"\) \|\| article\)/);
 assert.doesNotMatch(resultCardSource, /img\.addEventListener\("load"/);
 assert.match(html, /img-src 'self' data: blob: jbb-image:/);
+assert.match(html, /media-src 'self' blob: jbb-image: https: http:/);
 assert.match(html, /connect-src jbb-image:/);
 
 const reusableImageSource = sourceBetween(html, "let galleryReusableResultImages", "function createResultCard");
@@ -40,6 +41,11 @@ assert.match(reusableImageSource, /image\?\.complete/);
 assert.match(reusableImageSource, /image\.naturalWidth <= 0/);
 assert.match(reusableImageSource, /reusableImages\.get\(recordId\)\.push\(image\)/);
 assert.match(reusableImageSource, /function takeReusableResultImage\(recordId\)/);
+
+const contextMenuCopySource = sourceBetween(html, "async function copyImageFromContextMenu", "async function saveImageFromContextMenu");
+assert.match(contextMenuCopySource, /const source = getEntryOriginalImageSource\(entry\)/);
+assert.match(contextMenuCopySource, /imageSourceToBlob\(source\)/);
+assert.doesNotMatch(contextMenuCopySource, /imageSourceToBlob\(entry\.image\.src\)/);
 
 const galleryRenderSource = sourceBetween(html, "function renderImages", "function findTaskCard");
 assert.match(galleryRenderSource, /galleryReusableResultImages = collectReusableResultImages\(\)/);
