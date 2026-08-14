@@ -56,6 +56,7 @@ jobs:
           --mac dmg zip
           --${{ matrix.arch }}
           --publish never
+          --config.directories.output=output/installer
           --config.mac.identity=-
           --config.mac.hardenedRuntime=false
 

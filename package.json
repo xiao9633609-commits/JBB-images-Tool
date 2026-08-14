@@ -50,7 +50,7 @@
     "asar": true,
     "compression": "maximum",
     "directories": {
-      "output": "output/installer"
+      "output": "../../output/installer-optimized"
     },
     "extraResources": [
       {

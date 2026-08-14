@@ -30,7 +30,7 @@ assert.equal(packageJson.build.nsis.runAfterFinish, true);
 assert.equal(packageJson.build.nsis.deleteAppDataOnUninstall, false);
 assert.equal(packageJson.build.nsis.shortcutName, "金贝贝生图工具");
 assert.equal(packageJson.build.nsis.uninstallDisplayName, "金贝贝生图工具");
-assert.equal(packageJson.build.directories.output, "output/installer");
+assert.equal(packageJson.build.directories.output, "../../output/installer-optimized");
 assert.equal(packageJson.scripts["dist:mac"], "npm run build && electron-builder --mac dmg zip --arm64 --x64");
 assert.equal(packageJson.build.mac.category, "public.app-category.graphics-design");
 assert.equal(packageJson.build.mac.icon, "renderer/public/jbb-icon.png");
