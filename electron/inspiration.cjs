@@ -11,6 +11,7 @@ const YOUMIND_PAGE_SIZE = 18;
 const YOUMIND_MAX_PAGES = 40;
 const YOUMIND_EXPLORE_URL = "https://youmind.com/zh-CN/gpt-image-2-prompts/explore";
 const YOUMIND_API_URL = "https://youmind.com/youmarketing-api/prompts";
+const DUPLICATE_PROMPT_MIN_LENGTH = 72;
 const PROMPTHERO_FILTERS = Object.freeze({
   prompthero_chatgpt: { model: "ChatGPT Image" },
   prompthero_nano_banana: { model: "Nano Banana" },
@@ -69,6 +70,83 @@ function cleanPrompt(value) {
   prompt = prompt.replace(/\[\[USE_REFERENCE_FACE_SKIN_HAIR\]\]/gi, "使用参考图中的面部、肤色和发型");
   prompt = prompt.replace(/\{argument\s+name\s*=.*$/gim, "");
   return prompt.replace(/[ \t]+\n/g, "\n").replace(/\n{4,}/g, "\n\n\n").trim();
+}
+
+function isPromptExcerpt(item) {
+  return item?.promptKind === "excerpt" || /(?:\.\.\.|…)\s*$/u.test(String(item?.prompt || ""));
+}
+
+function normalizePromptForDeduplication(value) {
+  return cleanPrompt(value)
+    .normalize("NFKC")
+    .toLocaleLowerCase("zh-CN")
+    .replace(/(?:\.\.\.|…)\s*$/u, "")
+    .replace(/[\s\p{P}\p{S}]+/gu, "");
+}
+
+function duplicatePromptMatch(left, right) {
+  const leftPrompt = left.normalizedPrompt;
+  const rightPrompt = right.normalizedPrompt;
+  if (Math.min(leftPrompt.length, rightPrompt.length) < DUPLICATE_PROMPT_MIN_LENGTH) return false;
+  if (leftPrompt === rightPrompt) return !left.excerpt || !right.excerpt;
+  if (leftPrompt.length < rightPrompt.length) return left.excerpt && !right.excerpt && rightPrompt.startsWith(leftPrompt);
+  return right.excerpt && !left.excerpt && leftPrompt.startsWith(rightPrompt);
+}
+
+function comparePromptCompleteness(left, right) {
+  if (left.excerpt !== right.excerpt) return left.excerpt ? -1 : 1;
+  if (left.normalizedPrompt.length !== right.normalizedPrompt.length) {
+    return left.normalizedPrompt.length - right.normalizedPrompt.length;
+  }
+  const leftTime = Date.parse(left.item?.publishedAt || "") || 0;
+  const rightTime = Date.parse(right.item?.publishedAt || "") || 0;
+  return leftTime - rightTime;
+}
+
+function mergeDuplicateItem(preferred, discarded) {
+  const duplicateIds = new Set([
+    ...(Array.isArray(preferred.item?.duplicateIds) ? preferred.item.duplicateIds : []),
+    discarded.item?.id,
+    ...(Array.isArray(discarded.item?.duplicateIds) ? discarded.item.duplicateIds : [])
+  ].map(String).filter(Boolean));
+  duplicateIds.delete(String(preferred.item?.id || ""));
+  return {
+    ...preferred,
+    item: {
+      ...preferred.item,
+      duplicateIds: [...duplicateIds]
+    }
+  };
+}
+
+function deduplicateInspirationItems(items = []) {
+  const groups = [];
+  const buckets = new Map();
+  for (const item of Array.isArray(items) ? items : []) {
+    if (!item || typeof item !== "object" || !item.id) continue;
+    const normalizedPrompt = normalizePromptForDeduplication(item.prompt);
+    const candidate = { item, normalizedPrompt, excerpt: isPromptExcerpt(item) };
+    if (normalizedPrompt.length < DUPLICATE_PROMPT_MIN_LENGTH) {
+      groups.push(candidate);
+      continue;
+    }
+    const key = normalizedPrompt.slice(0, DUPLICATE_PROMPT_MIN_LENGTH);
+    const bucket = buckets.get(key) || [];
+    const duplicate = bucket.find((entry) => duplicatePromptMatch(entry, candidate));
+    if (!duplicate) {
+      bucket.push(candidate);
+      buckets.set(key, bucket);
+      groups.push(candidate);
+      continue;
+    }
+    const preferred = comparePromptCompleteness(candidate, duplicate) > 0 ? candidate : duplicate;
+    const discarded = preferred === candidate ? duplicate : candidate;
+    const merged = mergeDuplicateItem(preferred, discarded);
+    duplicate.item = merged.item;
+    duplicate.normalizedPrompt = merged.normalizedPrompt;
+    duplicate.excerpt = merged.excerpt;
+  }
+  return groups.map((entry) => entry.item);
 }
 
 function category(text) {
@@ -146,7 +224,10 @@ function createInspirationService({ dataRoot, logsRoot, onEvent, sources = SOURC
   const emit = (payload) => { lastState = { ...lastState, ...payload, updatedAt: new Date().toISOString() }; onEvent?.(lastState); };
   const writeAtomic = async (file, value) => { const temp = `${file}.${process.pid}.tmp`; await fs.writeFile(temp, JSON.stringify(value, null, 2), "utf8"); await fs.rename(temp, file); };
   const readJson = async (file, fallback) => { try { return JSON.parse(await fs.readFile(file, "utf8")); } catch { return fallback; } };
-  const previousFeed = async () => readJson(feedPath, { version: 3, updatedAt: "", items: [], sourceStatuses: [] });
+  const previousFeed = async () => {
+    const feed = await readJson(feedPath, { version: 3, updatedAt: "", items: [], sourceStatuses: [] });
+    return { ...feed, items: deduplicateInspirationItems(feed.items) };
+  };
   const previousItems = async (id) => (await previousFeed()).items.filter((entry) => entry?.sourceId === id);
   function assertAllowed(url) {
     const parsed = new URL(url);
@@ -276,7 +357,10 @@ function createInspirationService({ dataRoot, logsRoot, onEvent, sources = SOURC
       const html = await fetchText(source.url, signal); const flight = decodeFlight(html);
       records.push(...(extractJsonValueAfter(flight, '"initialPrompts"') || []));
     }
-      const items = records.slice(0, 100).map((record, sourceRank) => item({ id: `${source.id}-${record.id}`, sourceId: source.id, sourceName: source.name, sourceUrl: normalizeUrl(record.url || record.sourceUrl || source.url) || source.url, author: record.authorName || record.author?.name || record.author, model: record.model || "GPT Image 2", title: record.title, tags: record.tags || record.labels, cover: record.featured_image || record.images?.[0]?.url || record.images?.[0]?.thumb, prompt: record.content || record.prompt || record.description, publishedAt: record.createdAt || record.created_at || record.publishedAt || record.published_at, sourceRank }));
+      const items = records.slice(0, 100).map((record, sourceRank) => {
+        const prompt = record.content || record.prompt || record.description;
+        return item({ id: `${source.id}-${record.id}`, sourceId: source.id, sourceName: source.name, sourceUrl: normalizeUrl(record.url || record.sourceUrl || source.url) || source.url, author: record.authorName || record.author?.name || record.author, model: record.model || "GPT Image 2", title: record.title, tags: record.tags || record.labels, cover: record.featured_image || record.images?.[0]?.url || record.images?.[0]?.thumb, prompt, promptKind: isPromptExcerpt({ prompt }) ? "excerpt" : "full", publishedAt: record.createdAt || record.created_at || record.publishedAt || record.published_at, sourceRank });
+      });
     if (!items.length) throw new Error("未返回有效记录"); return items;
   }
   async function syncAiArt(signal) {
@@ -508,7 +592,7 @@ function createInspirationService({ dataRoot, logsRoot, onEvent, sources = SOURC
     const sourceOrder = new Map(SOURCES.map((source, index) => [source.id, index]));
     const sourceStatuses = [...statusMap.values()].sort((a, b) => (sourceOrder.get(a.sourceId) ?? 999) - (sourceOrder.get(b.sourceId) ?? 999));
     const updatedAt = new Date().toISOString();
-    const feed = { version: 3, updatedAt, items: [...merged.values()].sort(compareFreshness), sourceStatuses };
+    const feed = { version: 3, updatedAt, items: deduplicateInspirationItems([...merged.values()]).sort(compareFreshness), sourceStatuses };
     await writeAtomic(feedPath, feed);
     const successful = sourceResults.some((entry) => entry.success); const nextSyncAt = new Date(Date.now() + DAY_MS).toISOString(); const newState = { status: successful ? "completed" : "failed", message: successful ? "素材缓存已更新" : "所有来源同步失败，已保留上次缓存", updatedAt, lastSuccessfulSyncAt: successful ? updatedAt : (lastState.lastSuccessfulSyncAt || previous.updatedAt || ""), nextSyncAt: successful ? nextSyncAt : lastState.nextSyncAt, sourceStatuses: feed.sourceStatuses }; await writeAtomic(statePath, newState); await fs.appendFile(logPath, `${updatedAt} ${successful ? "completed" : "failed"} items=${feed.items.length} sources=${sourceResults.map((s) => `${s.sourceId}:${s.success ? "ok" : "cached"}`).join(",")}\n`); emit(newState); running = false; controller = null; schedule(); return newState;
   }
@@ -518,4 +602,4 @@ function createInspirationService({ dataRoot, logsRoot, onEvent, sources = SOURC
   return { start, sync, cancel, reload: previousFeed, getStatus: () => ({ ...lastState, running }), getSources: () => sourceList.map(({ id, name, url }) => ({ id, name, url })) };
 }
 
-module.exports = { SOURCES, createInspirationService };
+module.exports = { SOURCES, createInspirationService, deduplicateInspirationItems };

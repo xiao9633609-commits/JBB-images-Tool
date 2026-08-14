@@ -35158,6 +35158,56 @@ Write-Host 'JBB inspiration sync protocol removed.'
       return prompt.replace(/[ \t]+\n/g, "\n").replace(/\n{4,}/g, "\n\n\n").trim();
     }
 
+    function deduplicateSyncedInspirations(items) {
+      const minimumPrefixLength = 72;
+      const normalizePrompt = (value) => sanitizeInspirationPrompt(value)
+        .normalize("NFKC")
+        .toLocaleLowerCase("zh-CN")
+        .replace(/(?:\.\.\.|…)\s*$/u, "")
+        .replace(/[\s\p{P}\p{S}]+/gu, "");
+      const isExcerpt = (item) => item?.promptKind === "excerpt" || /(?:\.\.\.|…)\s*$/u.test(String(item?.prompt || ""));
+      const groups = [];
+      const buckets = new Map();
+      for (const item of Array.isArray(items) ? items : []) {
+        const normalizedPrompt = normalizePrompt(item?.prompt);
+        const candidate = { item, normalizedPrompt, excerpt: isExcerpt(item) };
+        if (normalizedPrompt.length < minimumPrefixLength) {
+          groups.push(candidate);
+          continue;
+        }
+        const key = normalizedPrompt.slice(0, minimumPrefixLength);
+        const bucket = buckets.get(key) || [];
+        const duplicate = bucket.find((entry) => {
+          if (entry.normalizedPrompt === candidate.normalizedPrompt) return !entry.excerpt || !candidate.excerpt;
+          if (entry.normalizedPrompt.length < candidate.normalizedPrompt.length) {
+            return entry.excerpt && !candidate.excerpt && candidate.normalizedPrompt.startsWith(entry.normalizedPrompt);
+          }
+          return candidate.excerpt && !entry.excerpt && entry.normalizedPrompt.startsWith(candidate.normalizedPrompt);
+        });
+        if (!duplicate) {
+          bucket.push(candidate);
+          buckets.set(key, bucket);
+          groups.push(candidate);
+          continue;
+        }
+        const candidateIsPreferred = candidate.excerpt !== duplicate.excerpt
+          ? !candidate.excerpt
+          : candidate.normalizedPrompt.length > duplicate.normalizedPrompt.length;
+        const preferred = candidateIsPreferred ? candidate : duplicate;
+        const discarded = candidateIsPreferred ? duplicate : candidate;
+        const duplicateIds = new Set([
+          ...(Array.isArray(preferred.item?.duplicateIds) ? preferred.item.duplicateIds : []),
+          discarded.item?.id,
+          ...(Array.isArray(discarded.item?.duplicateIds) ? discarded.item.duplicateIds : [])
+        ].map(String).filter(Boolean));
+        duplicateIds.delete(String(preferred.item?.id || ""));
+        duplicate.item = { ...preferred.item, duplicateIds: [...duplicateIds] };
+        duplicate.normalizedPrompt = preferred.normalizedPrompt;
+        duplicate.excerpt = preferred.excerpt;
+      }
+      return groups.map((entry) => entry.item);
+    }
+
     function normalizeSyncedInspiration(item, index) {
       if (!item || typeof item !== "object") return null;
       const sourceId = INSPIRATION_SOURCES.some((entry) => entry.id === String(item.sourceId) && entry.id !== "all") ? String(item.sourceId) : "";
@@ -35172,6 +35222,9 @@ Write-Host 'JBB inspiration sync protocol removed.'
       const publishedAtDate = new Date(item.publishedAt || "");
       const publishedAt = Number.isFinite(publishedAtDate.getTime()) ? publishedAtDate.toISOString() : "";
       const sourceRankValue = item.sourceRank !== null && item.sourceRank !== undefined ? Number(item.sourceRank) : Number.NaN;
+      const duplicateIds = [...new Set((Array.isArray(item.duplicateIds) ? item.duplicateIds : [])
+        .map((id) => String(id || "").trim().replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 160))
+        .filter((id) => id && id !== remoteId))];
       return {
         id: remoteId,
         sourceId,
@@ -35188,7 +35241,8 @@ Write-Host 'JBB inspiration sync protocol removed.'
         promptKind: item.promptKind === "excerpt" ? "excerpt" : "full",
         promptAvailable: Boolean(prompt),
         publishedAt,
-        sourceRank: Number.isFinite(sourceRankValue) ? sourceRankValue : null
+        sourceRank: Number.isFinite(sourceRankValue) ? sourceRankValue : null,
+        duplicateIds
       };
     }
 
@@ -35205,6 +35259,24 @@ Write-Host 'JBB inspiration sync protocol removed.'
       try {
         localStorage.setItem(INSPIRATION_FAVORITES_KEY, JSON.stringify([...state.inspirationFavorites]));
       } catch {}
+    }
+
+    function migrateDeduplicatedInspirationFavorites(items) {
+      let changed = false;
+      for (const item of Array.isArray(items) ? items : []) {
+        const duplicateIds = Array.isArray(item?.duplicateIds) ? item.duplicateIds : [];
+        if (!duplicateIds.some((id) => state.inspirationFavorites.has(id))) continue;
+        if (!state.inspirationFavorites.has(item.id)) {
+          state.inspirationFavorites.add(item.id);
+          changed = true;
+        }
+        for (const duplicateId of duplicateIds) {
+          if (state.inspirationFavorites.delete(duplicateId)) changed = true;
+        }
+      }
+      if (!changed) return;
+      state.inspirationFavoritesVersion += 1;
+      saveInspirationFavorites();
     }
 
     function setInspirationFeedStatus(message, kind = "idle") {
@@ -35331,9 +35403,10 @@ Write-Host 'JBB inspiration sync protocol removed.'
         }
         const updatedAt = String(feed.updatedAt || "").trim();
         if (onlyIfChanged && updatedAt === state.inspirationFeedUpdatedAt) return false;
-        state.inspirationSyncedItems = (Array.isArray(feed.items) ? feed.items : [])
+        state.inspirationSyncedItems = deduplicateSyncedInspirations((Array.isArray(feed.items) ? feed.items : [])
           .map(normalizeSyncedInspiration)
-          .filter(Boolean);
+          .filter(Boolean));
+        migrateDeduplicatedInspirationFavorites(state.inspirationSyncedItems);
         state.inspirationFeedUpdatedAt = updatedAt;
         state.inspirationSourceStatuses = Array.isArray(feed.sourceStatuses) ? feed.sourceStatuses : [];
         invalidateInspirationDataCache();
@@ -35548,7 +35621,8 @@ Write-Host 'JBB inspiration sync protocol removed.'
         if (!feed || typeof feed !== "object") return false;
         const updatedAt = String(feed.updatedAt || "").trim();
         if (onlyIfChanged && updatedAt === state.inspirationFeedUpdatedAt) return false;
-        state.inspirationSyncedItems = (Array.isArray(feed.items) ? feed.items : []).map(normalizeSyncedInspiration).filter(Boolean);
+        state.inspirationSyncedItems = deduplicateSyncedInspirations((Array.isArray(feed.items) ? feed.items : []).map(normalizeSyncedInspiration).filter(Boolean));
+        migrateDeduplicatedInspirationFavorites(state.inspirationSyncedItems);
         state.inspirationFeedUpdatedAt = updatedAt;
         state.inspirationSourceStatuses = Array.isArray(feed.sourceStatuses) ? feed.sourceStatuses : [];
         invalidateInspirationDataCache();

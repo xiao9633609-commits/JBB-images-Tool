@@ -24,6 +24,7 @@
     "test:release-check": "node tests/release-check.cjs",
     "test:ui": "node tests/ui-regressions.cjs",
     "test:image-loading": "node tests/image-loading-regressions.cjs",
+    "test:inspiration": "node tests/inspiration-deduplication.cjs",
     "test:legacy-import": "node tests/legacy-import.cjs",
     "test:persistence": "node tests/persistence-regressions.cjs",
     "test:release": "node tests/profile-reset.cjs && node tests/installer-single-instance.cjs && node tests/jbb-route-fallback.cjs && node tests/persistence-regressions.cjs",
