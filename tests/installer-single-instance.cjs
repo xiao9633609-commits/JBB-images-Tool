@@ -20,7 +20,7 @@ assert.match(mainSource, /mainWindow\.focus\(\)/);
 assert.match(mainSource, /mainWindow\.moveTop\(\)/);
 assert.doesNotMatch(mainSource, /second-instance[\s\S]{0,300}(?:dialog|MessageBox|showMessageBox)/);
 
-assert.equal(packageJson.version, "0.3.108");
+assert.equal(packageJson.version, "0.3.109");
 assert.equal(packageJson.build.appId, "cn.jbbimg.desktop");
 assert.equal(packageJson.build.win.executableName, "JBBimg");
 assert.equal(packageJson.build.nsis.guid, "7b141cc7-d57c-5908-af89-47db935b5de0");
@@ -30,7 +30,7 @@ assert.equal(packageJson.build.nsis.runAfterFinish, true);
 assert.equal(packageJson.build.nsis.deleteAppDataOnUninstall, false);
 assert.equal(packageJson.build.nsis.shortcutName, "金贝贝生图工具");
 assert.equal(packageJson.build.nsis.uninstallDisplayName, "金贝贝生图工具");
-assert.equal(packageJson.build.directories.output, "../../output/installer-optimized/0.3.108");
+assert.equal(packageJson.build.directories.output, "../../output/installer-optimized/0.3.109");
 assert.deepEqual(packageJson.build.extraResources, [{
   from: "resources/inspiration-seed",
   to: "inspiration-seed",

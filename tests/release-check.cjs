@@ -12,54 +12,54 @@ const {
   selectInstallerAsset
 } = require("../electron/release-check.cjs");
 
-const installerUrl = "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.109/JBBimg-Setup-0.3.109-x64.exe";
+const installerUrl = "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.110/JBBimg-Setup-0.3.110-x64.exe";
 
-assert.equal(normalizeVersion("v0.3.108"), "0.3.108");
+assert.equal(normalizeVersion("v0.3.109"), "0.3.109");
 assert.equal(normalizeVersion("金贝贝生图工具 JBBimg 0.4.0"), "0.4.0");
-assert.equal(compareVersions("0.3.109", "0.3.108"), 1);
-assert.equal(compareVersions("0.3.108", "0.3.108"), 0);
-assert.equal(compareVersions("0.3.9", "0.3.108"), -1);
+assert.equal(compareVersions("0.3.110", "0.3.109"), 1);
+assert.equal(compareVersions("0.3.109", "0.3.109"), 0);
+assert.equal(compareVersions("0.3.9", "0.3.109"), -1);
 assert.equal(compareVersions("1.0", "0.9.999"), 1);
 assert.equal(isAllowedReleaseUrl(RELEASES_URL), true);
-assert.equal(isAllowedReleaseUrl("https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109"), true);
+assert.equal(isAllowedReleaseUrl("https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.110"), true);
 assert.equal(isAllowedReleaseUrl("https://example.com/untrusted.exe"), false);
 assert.equal(isAllowedInstallerUrl(installerUrl), true);
 assert.equal(isAllowedInstallerUrl("https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.109/source.zip"), false);
 
 const assets = [
   {
-    name: "JBBimg-0.3.109-portable.zip",
-    browser_download_url: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.109/JBBimg-0.3.109-portable.zip",
+    name: "JBBimg-0.3.110-portable.zip",
+    browser_download_url: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.110/JBBimg-0.3.110-portable.zip",
     size: 200
   },
-  { name: "JBBimg-Setup-0.3.109-x64.exe", browser_download_url: installerUrl, size: 100 },
-  { name: "JBBimg-Setup-0.3.109-x64.exe", browser_download_url: "https://example.com/untrusted.exe", size: 500 }
+  { name: "JBBimg-Setup-0.3.110-x64.exe", browser_download_url: installerUrl, size: 100 },
+  { name: "JBBimg-Setup-0.3.110-x64.exe", browser_download_url: "https://example.com/untrusted.exe", size: 500 }
 ];
 assert.equal(selectInstallerAsset(assets).size, 100);
 
 const available = parseReleaseMetadata({
-  version: "0.3.109",
-  releaseName: "JBBimg 0.3.109",
+  version: "0.3.110",
+  releaseName: "JBBimg 0.3.110",
   publishedAt: "2026-08-13T00:00:00Z",
-  releaseUrl: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109",
+  releaseUrl: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.110",
   installerUrl
-}, "0.3.108");
+}, "0.3.109");
 assert.equal(available.updateAvailable, true);
-assert.equal(available.installer.name, "JBBimg-Setup-0.3.109-x64.exe");
+assert.equal(available.installer.name, "JBBimg-Setup-0.3.110-x64.exe");
 assert.equal(available.source, "metadata");
 
 const latest = parseReleasePage({
   url: RELEASES_URL,
-  html: '<a href="/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.108">JBBimg-Setup-0.3.108-x64.exe</a>'
-}, "0.3.108");
+  html: '<a href="/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109">JBBimg-Setup-0.3.109-x64.exe</a>'
+}, "0.3.109");
 assert.equal(latest.updateAvailable, false);
-assert.equal(latest.installer.name, "JBBimg-Setup-0.3.108-x64.exe");
-assert.equal(latest.releaseUrl, "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.108");
+assert.equal(latest.installer.name, "JBBimg-Setup-0.3.109-x64.exe");
+assert.equal(latest.releaseUrl, "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109");
 assert.equal(latest.source, "release-page");
 
 let calls = [];
 fetchLatestRelease({
-  currentVersion: "0.3.108",
+  currentVersion: "0.3.109",
   timeoutMs: 1000,
   attempts: 1,
   fetchImpl: async (url) => {
@@ -68,8 +68,8 @@ fetchLatestRelease({
     return {
       ok: true,
       status: 200,
-      url: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109",
-      text: async () => "JBBimg-Setup-0.3.109-x64.exe"
+      url: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.110",
+      text: async () => "JBBimg-Setup-0.3.110-x64.exe"
     };
   }
 }).then((result) => {

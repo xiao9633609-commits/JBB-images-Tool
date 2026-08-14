@@ -715,7 +715,7 @@ async function createWindow() {
   const initialBounds = getCenteredWindowBounds(display, width, height);
   allowMainWindowClose = false;
   mainWindowClosePending = false;
-  mainWindow = new BrowserWindow({ ...initialBounds, minWidth: sizing.minimumWidth, minHeight: sizing.minimumHeight, frame: false, show: false, backgroundColor: "#f8fafc", title: "金贝贝生图工具 · JBBimg 0.3.108", icon: path.join(__dirname, "../renderer/public/jbb-icon.png"), webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs") } });
+  mainWindow = new BrowserWindow({ ...initialBounds, minWidth: sizing.minimumWidth, minHeight: sizing.minimumHeight, frame: false, show: false, backgroundColor: "#f8fafc", title: "金贝贝生图工具 · JBBimg 0.3.109", icon: path.join(__dirname, "../renderer/public/jbb-icon.png"), webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs") } });
   applyWindowZoom(initialWindowSize.fitScale);
   activeDisplayId = String(display.id);
   mainWindow.on("move", () => scheduleDisplayAdaptation("window-move"));

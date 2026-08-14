@@ -1,6 +1,6 @@
 {
   "name": "jbbimg-desktop",
-  "version": "0.3.108",
+  "version": "0.3.109",
   "private": true,
   "type": "module",
   "description": "金贝贝生图工具桌面版",
@@ -49,7 +49,7 @@
     "asar": true,
     "compression": "maximum",
     "directories": {
-      "output": "../../output/installer-optimized/0.3.108"
+      "output": "../../output/installer-optimized/0.3.109"
     },
     "extraResources": [
       {
