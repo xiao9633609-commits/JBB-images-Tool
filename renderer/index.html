@@ -8,7 +8,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f4f7fb">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: jbb-image: https: http:; media-src 'self' blob: jbb-image: https: http:; connect-src jbb-image: https: http:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>金贝贝生图工具 JBBimg 0.3.110</title>
+  <title>金贝贝生图工具 JBBimg 0.3.109</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="./canvas-assistant.css">
@@ -2942,14 +2942,9 @@
       margin-right: auto;
       overflow-x: auto;
       padding-bottom: 0.15rem;
-      scrollbar-width: none;
     }
 
     .reference-strip[hidden] {
-      display: none;
-    }
-
-    .reference-strip::-webkit-scrollbar {
       display: none;
     }
 
@@ -2987,34 +2982,6 @@
     .reference-thumb[role="button"]:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
-    }
-
-    .reference-thumb-tooltip {
-      position: absolute;
-      left: 50%;
-      bottom: calc(100% + 0.45rem);
-      z-index: 8;
-      width: max-content;
-      max-width: min(220px, calc(100vw - 2rem));
-      padding: 0.35rem 0.55rem;
-      border: 1px solid var(--line-strong);
-      border-radius: 6px;
-      background: var(--toast-bg);
-      box-shadow: 0 8px 20px rgba(20, 31, 39, 0.16);
-      color: var(--text);
-      font-size: 0.68rem;
-      line-height: 1.35;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-50%, 4px);
-      transition: opacity 140ms ease, transform 140ms var(--ease);
-    }
-
-    .reference-item:hover .reference-thumb-tooltip,
-    .reference-item:focus-within .reference-thumb-tooltip {
-      opacity: 1;
-      transform: translate(-50%, 0);
     }
 
     .reference-index {
@@ -6091,11 +6058,6 @@
       transition: opacity 160ms ease, visibility 160ms ease, transform 180ms var(--ease);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      scrollbar-width: none;
-    }
-
-    .composer-prompt .reference-strip::-webkit-scrollbar {
-      display: none;
     }
 
     .reference-stack:hover .reference-strip,
@@ -6121,6 +6083,21 @@
       height: 60px;
     }
 
+    .reference-stack .reference-index {
+      position: absolute;
+      left: 4px;
+      bottom: 4px;
+      z-index: 2;
+      margin: 0;
+      padding: 2px 5px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.72);
+      color: #fff;
+      font-size: 0.54rem;
+      line-height: 1.2;
+      pointer-events: none;
+    }
+
     html[data-skin="swiss"] .composer-prompt {
       --prompt-editor-height: 78px;
       --prompt-editor-font-size: 1rem;
@@ -6139,21 +6116,6 @@
 
     html[data-skin="swiss"] .reference-thumb[role="button"]:hover {
       border-color: var(--accent);
-    }
-
-    .reference-stack .reference-index {
-      position: absolute;
-      left: 4px;
-      bottom: 4px;
-      z-index: 2;
-      margin: 0;
-      padding: 2px 5px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.72);
-      color: #fff;
-      font-size: 0.54rem;
-      line-height: 1.2;
-      pointer-events: none;
     }
 
     html[data-skin="swiss"] .reference-stack-trigger,
@@ -11634,12 +11596,9 @@
     .project-config-status[data-status="configured"] .project-config-dot { background: #198754; }
     .project-config-status[data-status="invalid"] { color: #c53030; }
     .project-config-status[data-status="invalid"] .project-config-dot { background: #dc2626; }
-    .project-config-status[data-status="pending"] { color: #b7791f; }
-    .project-config-status[data-status="pending"] .project-config-dot { background: #d5a12f; }
     .project-config-status[data-status="unconfigured"] { color: #667085; }
     .project-config-status[data-status="unconfigured"] .project-config-dot { background: #98a2b3; }
     .settings-button[data-status="invalid"] .config-status-dot { background: #dc2626; }
-    .settings-button[data-status="pending"] .config-status-dot { background: #d5a12f; }
     .settings-button[data-status="unconfigured"] .config-status-dot { background: #98a2b3; }
     .settings-button[data-status="configured"] .config-status-dot { background: #198754; }
     .project-modal-list { display: grid; max-height: 240px; gap: 4px; overflow-y: auto; }
@@ -16030,60 +15989,6 @@
       cursor: grab;
     }
 
-    .canvas-result-video.is-hover-previewing {
-      cursor: pointer;
-    }
-
-    .canvas-video-lightbox {
-      position: fixed;
-      inset: 0;
-      z-index: 52;
-      display: grid;
-      visibility: hidden;
-      place-items: center;
-      padding: clamp(0.75rem, 3vw, 2rem);
-      background: rgba(12, 15, 13, 0.9);
-      opacity: 0;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: opacity 180ms var(--ease), visibility 180ms var(--ease);
-    }
-
-    .canvas-video-lightbox.is-open {
-      visibility: visible;
-      opacity: 1;
-    }
-
-    .canvas-video-lightbox-video {
-      display: block;
-      width: auto;
-      height: auto;
-      max-width: calc(100vw - clamp(1.5rem, 8vw, 6rem));
-      max-height: calc(100dvh - clamp(4rem, 8vw, 7rem));
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      border-radius: 10px;
-      background: #08090c;
-      object-fit: contain;
-      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
-    }
-
-    .canvas-video-lightbox-close {
-      position: absolute;
-      top: clamp(0.65rem, 2vw, 1.25rem);
-      right: clamp(0.65rem, 2vw, 1.25rem);
-      z-index: 1;
-      border-color: rgba(255, 255, 255, 0.2);
-      background: rgba(20, 24, 21, 0.72);
-      color: #fff;
-    }
-
-    .canvas-video-lightbox-close:hover,
-    .canvas-video-lightbox-close:focus-visible {
-      border-color: rgba(255, 255, 255, 0.42);
-      background: rgba(20, 24, 21, 0.9);
-      color: #fff;
-    }
-
     .canvas-result-video-meta {
       position: absolute;
       right: 8px;
@@ -17775,11 +17680,11 @@
   <a class="skip-link" href="#main-content">跳到主要内容</a>
 
   <header class="app-header">
-    <div class="brand" aria-label="金贝贝生图工具 JBBimg 0.3.110">
+    <div class="brand" aria-label="金贝贝生图工具 JBBimg 0.3.109">
       <svg class="brand-mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 255.059 85.250 C 254.276 86.487, 242.471 105.725, 228.824 128 L 204.013 168.500 204.006 298.750 L 204 429 236.340 429 C 265.273 429, 269.494 428.792, 276.404 427.025 C 287.879 424.090, 295.337 419.723, 304.720 410.445 C 314.191 401.080, 319.487 391.463, 323.122 377.025 C 325.768 366.515, 325.343 349.280, 322.193 339.344 C 316.591 321.681, 302.195 303.059, 287.469 294.429 C 282.177 291.328, 281.302 293.064, 296.870 275.772 C 303.267 268.667, 309.610 262.569, 311.370 261.831 C 323.020 256.945, 335.765 266.052, 346.598 287 C 349.138 291.911, 349.442 293.517, 349.443 302 C 349.444 313.307, 346.927 319.716, 339.701 326.805 L 335.313 331.110 337.007 337.305 L 338.700 343.500 358.600 344 C 377.935 344.486, 378.664 344.580, 384.264 347.330 C 391.046 350.661, 395.692 355.745, 404.031 368.959 C 409.523 377.662, 410 378.875, 410 384.131 C 410 389.052, 409.543 390.445, 406.703 394.172 C 404.890 396.553, 401.403 399.625, 398.953 401 L 394.500 403.500 362 403.818 L 329.500 404.135 326.500 409.236 C 324.850 412.041, 320.266 417.636, 316.314 421.668 L 309.129 429 388.671 429 C 455.003 429, 468.128 428.776, 467.696 427.651 C 467.249 426.487, 430.039 364.869, 417.402 344.369 C 408.971 330.692, 398.543 323.992, 382.827 322.157 C 378.025 321.596, 376.584 321.066, 376.850 319.959 C 380.789 303.536, 380.567 293.538, 375.999 281.594 C 373.022 273.811, 357.088 250.054, 349.852 242.608 L 344.126 236.716 337.752 237.228 C 334.246 237.509, 329.198 238.703, 326.534 239.882 C 323.870 241.060, 321.535 241.868, 321.344 241.677 C 321.153 241.487, 321.898 237.809, 322.999 233.505 C 326.921 218.169, 325.075 197.975, 318.578 185.155 C 317.174 182.384, 308.077 166.929, 298.363 150.809 C 288.648 134.689, 275.502 112.838, 269.149 102.250 C 262.796 91.662, 257.347 83, 257.040 83 C 256.733 83, 255.841 84.013, 255.059 85.250 M 244.662 162.043 L 232 183.162 232 236.627 L 232 290.091 235.750 289.457 C 246.383 287.660, 254.677 280.929, 277.081 255.920 C 287.075 244.763, 291.789 236.747, 294.016 227.125 C 295.757 219.602, 294.808 204.913, 292.154 198.298 C 290.506 194.191, 260.798 144.970, 258.001 141.712 C 257.629 141.279, 251.626 150.428, 244.662 162.043 M 171.271 222.353 L 157.042 245.500 156.999 316 C 156.959 382.300, 156.846 386.742, 155.114 390.556 C 152.519 396.269, 145.892 401.643, 139.840 402.941 C 134.268 404.136, 91.993 404.409, 92.013 403.250 C 92.020 402.837, 95.776 396.200, 100.360 388.500 L 108.694 374.500 93.639 374.223 C 85.359 374.070, 78.083 374.138, 77.470 374.373 C 76.431 374.772, 71.666 382.258, 51.110 415.790 L 42.962 429.080 98.231 428.790 C 152.376 428.506, 153.608 428.456, 158.814 426.322 C 166.646 423.111, 174.210 416.936, 178.886 409.933 C 186.416 398.657, 186.040 404.870, 185.755 296.330 L 185.500 199.207 171.271 222.353 M 232 357.103 L 232 404.206 248.250 403.766 C 267.662 403.240, 271.600 402.059, 280.118 394.207 C 291.046 384.133, 295.567 372.227, 294.757 355.653 C 293.973 339.606, 287.514 326.357, 276.113 317.409 C 267.869 310.938, 264.160 310, 246.822 310 L 232 310 232 357.103" fill="currentColor" fill-rule="evenodd"></path></svg>
       <div class="brand-copy">
         <p class="brand-name">金贝贝生图工具</p>
-        <p class="brand-note">JBBIMG <span class="version-label">0.3.110</span></p>
+        <p class="brand-note">JBBIMG <span class="version-label">0.3.109</span></p>
       </div>
     </div>
     <nav class="feature-nav" aria-label="创作工具">
@@ -18377,7 +18282,7 @@
       <section class="results-panel" aria-labelledby="results-title">
         <div class="results-header">
           <div class="results-title-wrap">
-            <p class="results-kicker">Swiss Grid Image System / JBBimg 0.3.110</p>
+            <p class="results-kicker">Swiss Grid Image System / JBBimg 0.3.109</p>
             <h1 id="results-title" class="results-title">默认项目</h1>
             <p class="results-subtitle">生成结果保存在数据目录中，刷新或重新打开后自动恢复。</p>
           </div>
@@ -19472,13 +19377,6 @@
     <span id="image-lightbox-position" class="image-lightbox-position" aria-live="polite">1 / 1</span>
   </section>
 
-  <section id="canvas-video-lightbox" class="canvas-video-lightbox" role="dialog" aria-modal="true" aria-label="视频放大预览" aria-hidden="true" inert>
-    <button id="canvas-video-lightbox-close" class="icon-button canvas-video-lightbox-close" type="button" aria-label="关闭视频放大预览" title="关闭">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg>
-    </button>
-    <video id="canvas-video-lightbox-video" class="canvas-video-lightbox-video" controls playsinline preload="metadata"></video>
-  </section>
-
   <section id="bulk-manager" class="bulk-manager" aria-labelledby="bulk-manager-title" hidden>
     <div class="bulk-manager-copy">
       <h2 id="bulk-manager-title" class="bulk-manager-title">批量管理模式</h2>
@@ -19546,15 +19444,10 @@
     const CREDENTIAL_VIDEO_API_KEY = "GPT_IMAGE_STUDIO_VIDEO_API_KEY";
     const DEFAULT_BASE_URL = "https://downstream.jbbtoken.cn/v1";
     const DEFAULT_FALLBACK_BASE_URL = "https://cn.jbbt.cc/v1";
-    const DEFAULT_PAGES_BASE_URL = "https://jbbt.pages.dev/v1";
-    const DEFAULT_JBB_BASE_URLS = Object.freeze([DEFAULT_BASE_URL, DEFAULT_FALLBACK_BASE_URL, DEFAULT_PAGES_BASE_URL]);
+    const DEFAULT_JBB_BASE_URLS = Object.freeze([DEFAULT_BASE_URL, DEFAULT_FALLBACK_BASE_URL]);
     const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1";
-    const DATAEYES_PLATFORM_BASE_URL = "https://platform.dataeyes.ai";
-    const DATAEYES_CLOUD_BASE_URL = "https://cloud.dataeyes.ai";
     const DEFAULT_BASE_URL_LABEL = "金贝贝";
     const JBB_ROUTE_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504, 520, 521, 522, 523, 524]);
-    const CONFIG_RECOVERY_RETRY_DELAY_MS = 1800;
-    const CONFIG_RECOVERY_DOT_INTERVAL_MS = 420;
     let pinnedDefaultBaseUrl = DEFAULT_BASE_URL;
     const DEFAULT_MODEL = "gpt-image-2";
     const DEFAULT_NETWORK_TIMEOUT_MS = 120000;
@@ -19581,8 +19474,6 @@
       "imagen",
       "ideogram",
       "seedream",
-      "seededit",
-      "doubao",
       "midjourney",
       "recraft",
       "qwen-image",
@@ -19596,12 +19487,6 @@
       "veo",
       "seedance",
       "kling",
-      "hailuo",
-      "minimax",
-      "vidu",
-      "jimeng",
-      "wan",
-      "happyhorse",
       "h3video",
       "as-sd"
     ];
@@ -20440,9 +20325,6 @@
       imageLightboxPrevious: document.getElementById("image-lightbox-previous"),
       imageLightboxNext: document.getElementById("image-lightbox-next"),
       imageLightboxPosition: document.getElementById("image-lightbox-position"),
-      canvasVideoLightbox: document.getElementById("canvas-video-lightbox"),
-      canvasVideoLightboxClose: document.getElementById("canvas-video-lightbox-close"),
-      canvasVideoLightboxVideo: document.getElementById("canvas-video-lightbox-video"),
       imageContextMenu: document.getElementById("image-context-menu"),
       imageContextAnnotate: document.getElementById("image-context-annotate"),
       imageContextCopy: document.getElementById("image-context-copy"),
@@ -20632,7 +20514,6 @@
       imageModels: [],
       videoModels: [],
       conversationModels: [],
-      modelEndpointTypes: Object.create(null),
       images: [],
       failedTasks: [],
       desktopTasks: [],
@@ -20646,10 +20527,6 @@
       modelsLoading: false,
       startupModelsRequested: false,
       automaticModelRefreshTimerId: 0,
-      configRecoveryTimerId: 0,
-      configRecoveryAnimationTimerId: 0,
-      configRecoveryActive: false,
-      configRecoveryDotCount: 1,
       modelLatencyMs: null,
       connectionRouteLocked: false,
       storedApiKey: "",
@@ -20687,7 +20564,6 @@
       referenceMentionComposing: false,
       promptLimitNoticeAt: 0,
       configIssue: "",
-      configIssueKind: "",
       resolutionTier: "auto",
       resolutionRatio: "auto",
       pendingResolutionTier: "auto",
@@ -20708,8 +20584,6 @@
       previewComparePointerId: null,
       imageLightboxReturnFocus: null,
       imageLightboxMode: "gallery",
-      canvasVideoLightboxReturnFocus: null,
-      canvasVideoLightboxItemId: "",
       imageContextMenuRecordId: "",
       pendingRetryReplacement: null,
       generationTimerId: 0,
@@ -20779,8 +20653,6 @@
       canvasPendingImageTargetId: "",
       canvasPendingReferenceNodeId: "",
       canvasReplaceReferenceNodeId: "",
-      canvasUploadPickerToken: 0,
-      canvasUploadPickerCleanup: null,
       canvasAssetPickerTargetNodeId: "",
       canvasAssetPickerSelection: new Map(),
       canvasAssetPickerActiveProjectId: "",
@@ -21568,7 +21440,7 @@
     function isBuiltInAssistantKeyBaseUrl(value = getBaseUrlValue()) {
       try {
         const normalized = normalizeBaseUrl(value).toLowerCase();
-        return [...DEFAULT_JBB_BASE_URLS, DEFAULT_OPENAI_BASE_URL, DATAEYES_PLATFORM_BASE_URL]
+        return [...DEFAULT_JBB_BASE_URLS, DEFAULT_OPENAI_BASE_URL]
           .map((url) => normalizeBaseUrl(url).toLowerCase())
           .includes(normalized);
       } catch {
@@ -21651,28 +21523,34 @@
     }
 
     async function selectAndPinInitialJbbRoute(apiKey) {
-      let lastRetryableFailure = null;
-      for (let index = 0; index < DEFAULT_JBB_BASE_URLS.length; index += 1) {
-        const candidate = DEFAULT_JBB_BASE_URLS[index];
-        const label = index === 0 ? "主线路" : `备用线路 ${index}`;
-        setModelStatus(`正在检测金贝贝${label}...`, "idle");
-        setModelLatency("检测中...", "working");
-        const result = await probeJbbConnectionRoute(candidate, apiKey);
-        if (result.ok) {
-          setBaseUrlValue(candidate);
-          setClassifiedModels(classifyModels(result.models || []));
-          state.modelLatencyMs = result.latencyMs;
-          renderModelOptions();
-          setModelLatency(`${result.latencyMs} ms`, "success");
-          setModelStatus(`${label}已连通并固定，后续请求不会自动切换地址。`, "success");
-          return candidate;
-        }
-        if (!canTryFallbackRoute(result)) {
-          throw new Error(result.error || `${label}验证失败，请检查 API Key。禁止自动切换地址。`);
-        }
-        lastRetryableFailure = result;
+      setModelStatus("正在检测金贝贝主线路...", "idle");
+      setModelLatency("检测中...", "working");
+      const primary = await probeJbbConnectionRoute(DEFAULT_BASE_URL, apiKey);
+      if (primary.ok) {
+        setBaseUrlValue(DEFAULT_BASE_URL);
+        setClassifiedModels(classifyModels(primary.models || []));
+        state.modelLatencyMs = primary.latencyMs;
+        renderModelOptions();
+        setModelLatency(`${primary.latencyMs} ms`, "success");
+        setModelStatus("主线路已连通并固定，后续请求不会自动切换地址。", "success");
+        return DEFAULT_BASE_URL;
       }
-      throw new Error(`金贝贝默认线路均不可用：${lastRetryableFailure?.error || "连接失败"}`);
+      if (!canTryFallbackRoute(primary)) {
+        throw new Error(primary.error || "主线路验证失败，请检查 API Key。禁止自动切换地址。 ");
+      }
+
+      setModelStatus("主线路不可用，正在检测备用线路...", "idle");
+      const fallback = await probeJbbConnectionRoute(DEFAULT_FALLBACK_BASE_URL, apiKey);
+      if (!fallback.ok) {
+        throw new Error(`主线路不可用；备用线路检测失败：${fallback.error || "连接失败"}`);
+      }
+      setBaseUrlValue(DEFAULT_FALLBACK_BASE_URL);
+      setClassifiedModels(classifyModels(fallback.models || []));
+      state.modelLatencyMs = fallback.latencyMs;
+      renderModelOptions();
+      setModelLatency(`${fallback.latencyMs} ms`, "success");
+      setModelStatus("备用线路已连通并固定，后续请求不会自动切换地址。", "success");
+      return DEFAULT_FALLBACK_BASE_URL;
     }
 
     async function ensureConnectionRouteLocked() {
@@ -21695,29 +21573,6 @@
     function apiUrl(path) {
       const configuredBaseUrl = getBaseUrlValue();
       return `${normalizeBaseUrl(configuredBaseUrl)}/v1/${path.replace(/^\/+/, "")}`;
-    }
-
-    function isDataEyesApi(configOrUrl = getBaseUrlValue()) {
-      const value = typeof configOrUrl === "object" ? configOrUrl?.endpoint : configOrUrl;
-      try {
-        return new URL(String(value || "")).hostname.toLowerCase() === "platform.dataeyes.ai";
-      } catch {
-        return false;
-      }
-    }
-
-    function dataEyesUrl(path) {
-      return `${DATAEYES_PLATFORM_BASE_URL}/${String(path || "").replace(/^\/+/, "")}`;
-    }
-
-    function isDataEyesJsonImageEditModel(model) {
-      return /(?:doubao-(?:seedream|seededit)|seedream|seededit|flux|nano[-_ ]?banana)/i.test(String(model || ""));
-    }
-
-    function resolveImageEndpoint(model, isEdit = false) {
-      if (!isDataEyesApi()) return apiUrl(isEdit ? "images/edits" : "images/generations");
-      if (!isEdit || isDataEyesJsonImageEditModel(model)) return apiUrl("images/generations");
-      return `${DATAEYES_CLOUD_BASE_URL}/v1/images/edits`;
     }
 
     function getApiKey() {
@@ -21802,7 +21657,6 @@
       if (message) elements.modelStatus.title = message;
       else elements.modelStatus.removeAttribute("title");
       state.configIssue = kind === "error" ? message : "";
-      state.configIssueKind = kind === "error" ? (state.configIssueKind || "config") : "";
       updateConfigStatus();
     }
 
@@ -21841,12 +21695,9 @@
       let status = "unconfigured";
       let text = "未配置";
 
-      if (state.configRecoveryActive) {
-        status = "pending";
-        text = `正在获取${".".repeat(Math.max(1, Math.min(3, Number(state.configRecoveryDotCount) || 1)))}`;
-      } else if (validationIssue) {
+      if (validationIssue) {
         status = "invalid";
-        text = state.configIssueKind === "network" ? "网络异常" : "异常配置";
+        text = "异常配置";
       } else if (hasUrl && hasKey && hasAssistantKey && hasVideoKey && hasModel) {
         status = "configured";
         text = "已配置";
@@ -21857,18 +21708,11 @@
 
       elements.configStatus.dataset.status = status;
       elements.configStatusText.textContent = text;
-      elements.settingsToggle.dataset.status = status;
-      const statusTitle = state.configRecoveryActive
-        ? "网络异常，正在重新获取模型列表并检测接口；点击打开连接设置"
-        : validationIssue
-          ? `${validationIssue}；点击打开连接设置`
-          : `${text}；点击打开连接设置`;
-      elements.configStatus.title = statusTitle;
+      elements.configStatus.title = validationIssue ? `${validationIssue}；点击打开连接设置` : `${text}；点击打开连接设置`;
       elements.settingsToggle.setAttribute("aria-label", `${text}，打开连接设置`);
       if (elements.projectConfigStatus) {
         elements.projectConfigStatus.dataset.status = status;
         elements.projectConfigStatusText.textContent = text;
-        elements.projectConfigStatus.title = statusTitle;
       }
     }
 
@@ -21888,7 +21732,7 @@
         if (stage === "output") return "生成结果在输出阶段被安全检查拦截，请改变构图或内容后重试。";
         return "请求未满足安全要求，请修改提示词或输入内容。";
       }
-      if ([504, 524].includes(error?.status)) return "中转站等待上游图片模型超时。建议稍后重试；系统会自动重新检测模型接口是否恢复。";
+      if (error?.status === 504) return "中转站等待上游图片模型超时。建议先用 1024×1024 和低质量测试，或联系中转站增加代理超时时间。";
       if (error?.status === 429) return "请求频率或额度达到限制。请稍后重试并检查中转站余额与速率限制。";
       if (error?.status === 502 && /all upstream suppliers failed/i.test(`${error?.message || ""} ${error?.raw || ""}`)) {
         return "中转站已确认所有上游渠道均失败。本次请求不会继续产出图片，请稍后重试或切换可用分组。";
@@ -22784,28 +22628,7 @@
       state.batches.forEach((batch) => refreshBatchRecord(batch.id));
     }
 
-    async function imageSourceToBlob(src, logId = "", options = {}) {
-      const dataEyesBase64 = Boolean(options?.dataEyesBase64);
-      if (dataEyesBase64 && /^data:image\/[\w.+-]+;base64,/i.test(String(src || ""))) {
-        const dataUrl = String(src);
-        const commaIndex = dataUrl.indexOf(",");
-        const header = dataUrl.slice(0, commaIndex);
-        const base64 = dataUrl.slice(commaIndex + 1);
-        try {
-          const binary = atob(base64);
-          const bytes = new Uint8Array(binary.length);
-          for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-          const mimeType = /^data:([^;]+)/i.exec(header)?.[1] || "image/png";
-          return new Blob([bytes], { type: mimeType });
-        } catch (error) {
-          throw annotateRequestError(error, {
-            requestStage: "result_image_fetch",
-            requestUrl: "data:[redacted]",
-            requestMethod: "GET",
-            requestTransport: "dataeyes-base64"
-          });
-        }
-      }
+    async function imageSourceToBlob(src, logId = "") {
       const storedFilename = getStoredImageFilename(src);
       const usesDesktopBridge = typeof window.gptImageApi?.readImage === "function" && /^https?:\/\//i.test(src);
       try {
@@ -24157,8 +23980,6 @@
       state.videoModels = [];
       state.conversationModels = [];
       state.configIssue = "";
-      state.configIssueKind = "";
-      cancelConfigRecovery();
       renderModelOptions();
       updateDynamicControls();
       updateCharCount();
@@ -24198,7 +24019,7 @@
         duration: { type: "range", min: 1, max: 60, step: 1, defaultText: 5, defaultReference: 5, verified: [] },
         ratios: { "16:9": "1280x720", "9:16": "720x1280" },
         defaultRatio: "16:9",
-        maxReferenceImages: isDataEyesApi() ? 4 : 0,
+        maxReferenceImages: 0,
         maxWaitMs: VIDEO_DEFAULT_MAX_WAIT_MS,
         inferred: true
       };
@@ -24343,14 +24164,7 @@
         cache: "no-store"
       });
       if (!response.ok) throw await parseErrorResponse(response);
-      const payload = await parseSuccessResponse(response);
-      const records = Array.isArray(payload?.data) ? payload.data : [];
-      records.forEach((item) => {
-        const id = String(item?.id || "").trim();
-        const endpointTypes = Array.isArray(item?.supported_endpoint_types) ? item.supported_endpoint_types.map(String) : [];
-        if (id && endpointTypes.length) state.modelEndpointTypes[id] = endpointTypes;
-      });
-      return extractModelsFromPayload(payload);
+      return extractModelsFromPayload(await parseSuccessResponse(response));
     }
 
     function hasAnyModelKey() {
@@ -24379,80 +24193,8 @@
       }, 700);
     }
 
-    function isRecoverableNetworkFailure(error) {
-      const status = Number(error?.status || 0);
-      const code = String(error?.code || error?.type || "").toLowerCase();
-      const requestStage = String(error?.requestStage || "").toLowerCase();
-      const details = `${error?.message || ""} ${error?.raw || ""} ${code}`.toLowerCase();
-      if (code === "user_canceled" || code === "desktop_bridge_required" || code === "moderation_blocked") return false;
-      if ([400, 401, 403, 404].includes(status)) return false;
-      if (code === "client_timeout" || code === "timeout") return true;
-      if (status === 0 || JBB_ROUTE_FAILURE_STATUSES.has(status)) return true;
-      if (status >= 520 && status <= 526) return true;
-      if (error instanceof TypeError && requestStage !== "result_image_fetch") return true;
-      return /network|fetch|timeout|timed?\s*out|cloudflare|524|origin_response_timeout|upstream_error|econn|socket|proxy/i.test(details);
-    }
-
-    function startConfigRecoveryAnimation() {
-      if (state.configRecoveryAnimationTimerId) window.clearInterval(state.configRecoveryAnimationTimerId);
-      state.configRecoveryActive = true;
-      state.configRecoveryDotCount = 1;
-      updateConfigStatus();
-      state.configRecoveryAnimationTimerId = window.setInterval(() => {
-        state.configRecoveryDotCount = state.configRecoveryDotCount >= 3 ? 1 : state.configRecoveryDotCount + 1;
-        updateConfigStatus();
-      }, CONFIG_RECOVERY_DOT_INTERVAL_MS);
-    }
-
-    function stopConfigRecoveryAnimation(success) {
-      if (state.configRecoveryAnimationTimerId) window.clearInterval(state.configRecoveryAnimationTimerId);
-      state.configRecoveryAnimationTimerId = 0;
-      state.configRecoveryActive = false;
-      state.configRecoveryDotCount = 1;
-      if (success) {
-        state.configIssue = "";
-        state.configIssueKind = "";
-      } else {
-        state.configIssue = state.configIssue || "网络异常，模型接口暂未恢复，请稍后重试。";
-        state.configIssueKind = "network";
-      }
-      updateConfigStatus();
-    }
-
-    function cancelConfigRecovery() {
-      if (state.configRecoveryTimerId) window.clearTimeout(state.configRecoveryTimerId);
-      if (state.configRecoveryAnimationTimerId) window.clearInterval(state.configRecoveryAnimationTimerId);
-      state.configRecoveryTimerId = 0;
-      state.configRecoveryAnimationTimerId = 0;
-      state.configRecoveryActive = false;
-      state.configRecoveryDotCount = 1;
-    }
-
-    function scheduleNetworkConfigRecovery(error) {
-      if (!isRecoverableNetworkFailure(error) || !hasAnyModelKey()) return false;
-      if (state.configRecoveryTimerId) window.clearTimeout(state.configRecoveryTimerId);
-      state.configIssue = getFailureSummary(error);
-      state.configIssueKind = "network";
-      updateConfigStatus();
-      state.configRecoveryTimerId = window.setTimeout(async () => {
-        state.configRecoveryTimerId = 0;
-        if (state.modelsLoading) {
-          scheduleNetworkConfigRecovery(error);
-          return;
-        }
-        startConfigRecoveryAnimation();
-        const loaded = await loadModels({ persist: true, showErrorToast: false, recoveryProbe: true });
-        stopConfigRecoveryAnimation(loaded);
-        if (loaded) showToast("网络恢复，模型接口已重新连通", "success");
-      }, CONFIG_RECOVERY_RETRY_DELAY_MS);
-      return true;
-    }
-
     async function loadModels(options = {}) {
       if (state.modelsLoading) return false;
-      if (!options?.recoveryProbe && (state.configRecoveryTimerId || state.configRecoveryActive)) {
-        cancelConfigRecovery();
-      }
       const persist = options?.persist !== false;
       const showErrorToast = options?.showErrorToast !== false;
       let endpoint;
@@ -24483,7 +24225,6 @@
       }
 
       state.modelsLoading = true;
-      state.modelEndpointTypes = Object.create(null);
       state.modelLatencyMs = null;
       elements.loadModels.disabled = true;
       elements.loadModels.textContent = "读取中";
@@ -25015,8 +24756,7 @@
         ? `已选择 ${state.referenceFiles.length} 张参考图片`
         : "上传参考图片";
       elements.referenceStackTrigger.setAttribute("aria-label", `查看 ${state.referenceFiles.length} 张参考图片`);
-      elements.referenceStackTrigger.title = "左击放大，右击批注修改";
-      elements.referenceStackTrigger.setAttribute("aria-description", "左击放大，右击批注修改");
+      elements.referenceStackTrigger.title = `查看 ${state.referenceFiles.length} 张参考图片`;
       elements.referenceStackCount.hidden = state.referenceFiles.length <= 4;
       elements.referenceStackCount.textContent = state.referenceFiles.length > 4
         ? String(state.referenceFiles.length)
@@ -25039,24 +24779,10 @@
         image.setAttribute("role", "button");
         image.tabIndex = 0;
         image.setAttribute("aria-haspopup", "dialog");
-        image.setAttribute("aria-label", `参考图片 ${index + 1}；左击放大，右击批注修改`);
-        image.title = "左击放大，右击批注修改";
-        const hint = document.createElement("span");
-        hint.className = "reference-thumb-tooltip";
-        hint.setAttribute("role", "tooltip");
-        hint.textContent = "左击放大，右击批注修改";
+        image.setAttribute("aria-label", `预览参考图片 ${index + 1}`);
+        image.title = "点击查看大图";
         image.addEventListener("click", () => openReferenceImageLightbox(index, image));
-        image.addEventListener("contextmenu", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          openReferenceAnnotationEditor(index, image);
-        });
         image.addEventListener("keydown", (event) => {
-          if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
-            event.preventDefault();
-            openReferenceAnnotationEditor(index, image);
-            return;
-          }
           if (event.key !== "Enter" && event.key !== " ") return;
           event.preventDefault();
           openReferenceImageLightbox(index, image);
@@ -25093,7 +24819,7 @@
           updateDynamicControls();
         });
 
-        item.append(image, hint, caption, remove);
+        item.append(image, caption, remove);
         fragment.appendChild(item);
       });
       elements.referenceStrip.appendChild(fragment);
@@ -25301,14 +25027,8 @@
         : resolvedResolution.size;
       elements.sizePixelLabel.textContent = displayResolution(displayedSize);
 
-      const dataEyesOutputDefaults = isDataEyesApi();
-      if (dataEyesOutputDefaults) {
-        // DataEyesAI image results are always requested as JPEG at maximum quality.
-        elements.outputFormat.value = "jpeg";
-        elements.outputCompression.value = "100";
-      }
       const compressible = ["jpeg", "webp"].includes(elements.outputFormat.value);
-      elements.compressionField.style.display = dataEyesOutputDefaults ? "none" : (compressible ? "grid" : "none");
+      elements.compressionField.style.display = compressible ? "grid" : "none";
       elements.compressionValue.textContent = `${elements.outputCompression.value}%`;
 
       const transparentOption = [...elements.background.options].find((option) => option.value === "transparent");
@@ -27223,7 +26943,7 @@ ${strengthPrompt}
       const ratio = getAspectRatioLabel(size);
       return {
         ...baseConfig,
-        endpoint: resolveImageEndpoint(baseConfig.model || "gpt-image-2", true),
+        endpoint: apiUrl("images/edits"),
         prompt: buildUpscale4kTilePrompt(tile, prepared, strength, referenceMode, qualityRetry),
         size,
         expectedSize: size,
@@ -27879,7 +27599,7 @@ ${strengthPrompt}
           ? baseConfig
           : {
               ...baseConfig,
-              endpoint: resolveImageEndpoint(baseConfig.model || "gpt-image-2", true),
+              endpoint: apiUrl("images/edits"),
               size: finalSize,
               expectedSize: finalSize,
               outputFormat: "png",
@@ -28044,9 +27764,9 @@ ${strengthPrompt}
       if (isEdit && modelProfile.editSupported === false) {
         throw new Error(`${modelProfile.label} 参考图编辑需要公网 HTTPS 图片地址，当前图片工作台不支持直接上传本地文件。`);
       }
-      const endpoint = isDataEyesApi()
-        ? resolveImageEndpoint(model, isEdit)
-        : apiUrl(isEdit ? modelProfile.editEndpoint : modelProfile.generationEndpoint);
+      const endpoint = apiUrl(
+        isEdit ? modelProfile.editEndpoint : modelProfile.generationEndpoint
+      );
       const protocolConfig = {
         endpoint,
         model,
@@ -28299,7 +28019,6 @@ ${strengthPrompt}
 
     function buildCompatiblePayload(config, includeOptionalFields = true, includeResponseFormat = true) {
       const jbb = usesJbbProtocol(config);
-      const dataEyes = isDataEyesApi(config);
       const payload = {
         model: config.model,
         prompt: promptForRequest(config),
@@ -28312,8 +28031,8 @@ ${strengthPrompt}
         payload.size = getSizeFieldValue(config);
       }
 
-      if (includeResponseFormat || jbb || dataEyes) {
-        payload.response_format = dataEyes ? "url" : jbb ? getJbbResponseFormat(config) : "b64_json";
+      if (includeResponseFormat || jbb) {
+        payload.response_format = jbb ? getJbbResponseFormat(config) : "b64_json";
       }
       if (includeOptionalFields && config.background !== "auto") {
         payload.background = config.background;
@@ -28333,18 +28052,10 @@ ${strengthPrompt}
       return payload;
     }
 
-    async function buildDataEyesJsonImageEditPayload(config) {
-      const payload = buildCompatiblePayload({ ...config, isEdit: false }, true, true);
-      const images = await Promise.all(config.referenceFiles.map((file) => readBlobAsDataUrl(file)));
-      payload.image = images.length === 1 ? images[0] : images;
-      return payload;
-    }
-
     function buildEditFormData(config) {
       const form = new FormData();
       const official = config.apiMode === "official";
       const jbb = usesJbbProtocol(config);
-      const dataEyes = isDataEyesApi(config);
       form.append("model", config.model);
       form.append("prompt", promptForRequest(config));
 
@@ -28358,7 +28069,7 @@ ${strengthPrompt}
         if (!isGptImage2(config.model) && config.inputFidelity !== "auto") form.append("input_fidelity", config.inputFidelity);
         if (config.moderation !== "auto") form.append("moderation", config.moderation);
       } else {
-        form.append("response_format", dataEyes ? "url" : jbb ? getJbbResponseFormat(config) : "b64_json");
+        form.append("response_format", jbb ? getJbbResponseFormat(config) : "b64_json");
         const outputFormat = jbb ? getJbbOutputFormat(config) : config.outputFormat;
         if (outputFormat) form.append("output_format", outputFormat);
         if (shouldSendSizeField(config)) form.append("size", getSizeFieldValue(config));
@@ -28436,8 +28147,6 @@ ${strengthPrompt}
       const candidates = [
         payload?.id, payload?.task_id, payload?.taskId,
         payload?.data?.id, payload?.data?.task_id, payload?.data?.taskId,
-        payload?.data?.request_id, payload?.data?.requestId,
-        payload?.output?.task_id, payload?.output?.taskId,
         payload?.data?.[0]?.id, payload?.data?.[0]?.task_id,
         payload?.video?.id, payload?.video?.task_id,
         payload?.result?.id, payload?.result?.task_id
@@ -28447,7 +28156,7 @@ ${strengthPrompt}
     }
 
     function getVideoStatus(payload) {
-      return String(payload?.status || payload?.state || payload?.data?.status || payload?.data?.state || payload?.data?.[0]?.status || payload?.data?.[0]?.state || payload?.result?.status || payload?.result?.state || payload?.output?.task_status || payload?.content?.status || "").trim().toLowerCase();
+      return String(payload?.status || payload?.state || payload?.data?.status || payload?.data?.state || payload?.result?.status || payload?.result?.state || "").trim().toLowerCase();
     }
 
     function extractVideoFallbackUrl(payload) {
@@ -28456,12 +28165,7 @@ ${strengthPrompt}
         payload?.metadata?.url, payload?.metadata?.video_url, payload?.metadata?.final_url,
         payload?.data?.video_url, payload?.data?.url, payload?.data?.final_url,
         payload?.data?.metadata?.url, payload?.file?.url,
-        payload?.files?.[0]?.url, payload?.output?.[0]?.url,
-        payload?.content?.video_url, payload?.data?.task_result?.videos?.[0]?.url,
-        payload?.data?.creations?.[0]?.url, payload?.data?.video?.url,
-        payload?.output?.video_url, payload?.output?.results?.[0]?.url,
-        payload?.data?.[0]?.video_url, payload?.data?.[0]?.creations?.[0]?.url,
-        payload?.video?.url
+        payload?.files?.[0]?.url, payload?.output?.[0]?.url
       ];
       const value = String(candidates.find((candidate) => String(candidate || "").trim()) || "").trim();
       if (!value) return "";
@@ -28473,19 +28177,6 @@ ${strengthPrompt}
     }
 
     async function requestVideoCreate(config, referenceFile = null) {
-      if (isDataEyesApi(config)) {
-        const request = await buildDataEyesVideoRequest(config, referenceFile ? [referenceFile] : (config.referenceFiles || []));
-        const response = await networkRequest(request.endpoint, {
-          method: request.method, diagnosticStage: "dataeyes_video_generation_create",
-          headers: request.headers, body: JSON.stringify(request.body), signal: config.signal,
-          timeoutMs: config.requestTimeoutMs, logId: config.logId || "", logSeed: createTaskLogSeed(config), retryConnection: false
-        });
-        if (!response.ok) throw await parseErrorResponse(response);
-        const payload = await parseSuccessResponse(response);
-        const taskId = extractVideoTaskId(payload);
-        if (!taskId) throw new Error("DataEyesAI 视频创建响应中没有任务 ID，已停止，不会重复创建付费任务。");
-        return { payload, taskId, profile: getVideoProfileForConfig(config) };
-      }
       const transport = getJbbVideoTransport(config, Boolean(referenceFile));
       const profile = getVideoProfileForConfig(config);
       let body;
@@ -28520,12 +28211,9 @@ ${strengthPrompt}
     }
 
     async function requestVideoStatus(config, taskId) {
-      const request = isDataEyesApi(config)
-        ? getDataEyesVideoStatusRequest(config, taskId)
-        : { endpoint: getJbbVideoTaskUrl(config, taskId), method: "GET", headers: { Authorization: `Bearer ${config.key}`, Accept: "application/json" } };
-      const response = await networkRequest(request.endpoint, {
-        method: request.method, diagnosticStage: isDataEyesApi(config) ? "dataeyes_video_generation_poll" : "video_generation_poll",
-        headers: request.headers, body: request.body,
+      const response = await networkRequest(getJbbVideoTaskUrl(config, taskId), {
+        method: "GET", diagnosticStage: "video_generation_poll",
+        headers: { Authorization: `Bearer ${config.key}`, Accept: "application/json" },
         signal: config.signal, timeoutMs: config.requestTimeoutMs,
         logId: config.logId || "", logSeed: createTaskLogSeed(config)
       });
@@ -28536,12 +28224,6 @@ ${strengthPrompt}
     async function downloadVideoContent(config, taskId, fallbackPayload) {
       const profile = getVideoProfileForConfig(config);
       const fallbackUrl = extractVideoFallbackUrl(fallbackPayload);
-      if (isDataEyesApi(config)) {
-        if (!fallbackUrl) throw new Error("DataEyesAI 视频任务已完成，但响应中没有可下载的视频地址。请在任务日志中查看原始任务 ID。 ");
-        const directResult = await window.gptImageApi.readImage({ src: fallbackUrl, logId: config.logId || "" });
-        if (directResult?.transportError || !directResult?.data) throw new Error(directResult?.transportError || "DataEyesAI 视频成品下载失败。");
-        return { data: directResult.data, mimeType: directResult.mimeType || "video/mp4", source: fallbackUrl };
-      }
       if (profile.downloadPriority === "video_url" && fallbackUrl) {
         const directResult = await window.gptImageApi.readImage({ src: fallbackUrl, logId: config.logId || "" });
         if (!directResult?.transportError && directResult?.data) {
@@ -28746,11 +28428,7 @@ ${strengthPrompt}
       }), "请求未完成。");
     }
 
-    async function requestImageEdit(config) {
-      if (isDataEyesApi(config) && isDataEyesJsonImageEditModel(config.model)) {
-        const payload = await buildDataEyesJsonImageEditPayload(config);
-        return requestGeneration(config, payload);
-      }
+    function requestImageEdit(config) {
       return requestWithRetry(config, () => ({
           method: "POST",
           diagnosticStage: "image_edit_request",
@@ -28857,6 +28535,7 @@ ${strengthPrompt}
         elements.background,
         elements.moderation,
         elements.inputFidelity,
+        elements.outputCompression,
         elements.retryTransient,
         elements.responseWarning,
         elements.requestTimeout
@@ -29016,9 +28695,7 @@ ${strengthPrompt}
     }
 
     async function createGeneratedEntry(config, image, size, outputFormat, requestStartedAt) {
-      const sourceBlob = await imageSourceToBlob(image.src, config.logId, {
-        dataEyesBase64: isDataEyesApi(config)
-      });
+      const sourceBlob = await imageSourceToBlob(image.src, config.logId);
       const canReuseObjectUrl = /^blob:/i.test(String(image.src || ""));
       const localSrc = canReuseObjectUrl ? image.src : URL.createObjectURL(sourceBlob);
       try {
@@ -29195,9 +28872,6 @@ ${strengthPrompt}
       if (status === 502) return "上游服务失败，请稍后重试";
       if (status === 503) return "服务暂时不可用，请稍后重试";
       if (status === 504) return "上游响应超时，请稍后重试";
-      if (status === 524) return "中转站响应超时，请稍后重试";
-      if (status === 0) return "网络异常，请稍后重试";
-      if (status >= 520 && status <= 526) return "网络或中转站临时异常，请稍后重试";
       if (error instanceof TypeError && error?.requestStage === "result_image_fetch") {
         return "图片已返回，但本地预览下载失败";
       }
@@ -29209,14 +28883,6 @@ ${strengthPrompt}
         .replace(/\s+/g, " ")
         .trim();
       return message.length > 52 ? `${message.slice(0, 52)}...` : message;
-    }
-
-    function getDisplayFailureReason(failure) {
-      const reason = String(failure?.reason || "").trim();
-      if (/正在检测网络配置|正在检测接口连接/.test(reason)) {
-        return getFailureSummary(failure);
-      }
-      return reason || getFailureSummary(failure);
     }
 
     function createFailureRecord(error, task) {
@@ -29290,7 +28956,7 @@ ${strengthPrompt}
 
     function formatFailureDetails(failure) {
       return [
-        `消息: ${failure.detail || getDisplayFailureReason(failure) || "请求未完成"}`,
+        `消息: ${failure.detail || failure.reason || "请求未完成"}`,
         `HTTP 状态: ${failure.status || "-"}`,
         `错误代码: ${failure.errorCode || "-"}`,
         `请求 ID: ${failure.requestId || "-"}`,
@@ -29905,11 +29571,10 @@ ${strengthPrompt}
     }
 
     function createFailedTaskCard(failure, index) {
-      const displayReason = getDisplayFailureReason(failure);
       const article = createTaskCard(
         "failed-task-card",
         index,
-        `生成失败：${displayReason}`,
+        `生成失败：${failure.reason}`,
         `failure:${failure.recordId}`
       );
       if (failure.id) article.dataset.taskId = String(failure.id);
@@ -29918,7 +29583,7 @@ ${strengthPrompt}
       const selection = createTaskSelectionControl(
         "failure",
         failure.recordId,
-        `选择失败任务：${displayReason}`
+        `选择失败任务：${failure.reason}`
       );
 
       const timer = document.createElement("span");
@@ -29930,7 +29595,7 @@ ${strengthPrompt}
 
       const media = document.createElement("div");
       media.className = "failed-task-media";
-      configureCardTrigger(media, `查看失败详情：${displayReason}`, () => openFailurePreview(index));
+      configureCardTrigger(media, `查看失败详情：${failure.reason}`, () => openFailurePreview(index));
 
       const content = document.createElement("div");
       content.className = "failed-task-content";
@@ -29946,8 +29611,8 @@ ${strengthPrompt}
 
       const reason = document.createElement("p");
       reason.className = "failed-task-reason";
-      reason.textContent = displayReason;
-      reason.title = displayReason;
+      reason.textContent = failure.reason;
+      reason.title = failure.reason;
       content.append(icon, title, reason);
       media.appendChild(content);
 
@@ -29985,7 +29650,7 @@ ${strengthPrompt}
       retryButton.appendChild(retryLabel);
       details.append(detailsButton, copyButton, retryButton);
       info.appendChild(details);
-      const bulkHitTarget = createTaskBulkHitTarget(selection.querySelector(".task-select-input"), `选择失败任务：${displayReason}`);
+      const bulkHitTarget = createTaskBulkHitTarget(selection.querySelector(".task-select-input"), `选择失败任务：${failure.reason}`);
       article.append(timer, deleteButton, media, selection);
       if (bulkHitTarget) article.append(bulkHitTarget);
       article.append(info);
@@ -31172,135 +30837,6 @@ ${strengthPrompt}
       setImageLightbox(true);
     }
 
-    function setCanvasVideoLightbox(open, restoreFocus = true) {
-      const isOpen = Boolean(open);
-      const imageLightboxOpen = elements.imageLightbox.classList.contains("is-open");
-      const previewOpen = elements.previewDialog.classList.contains("is-open");
-      elements.canvasVideoLightbox.classList.toggle("is-open", isOpen);
-      elements.canvasVideoLightbox.setAttribute("aria-hidden", String(!isOpen));
-      elements.canvasVideoLightbox.inert = !isOpen;
-      document.body.classList.toggle("modal-open", isOpen || imageLightboxOpen || previewOpen);
-      if (isOpen) {
-        elements.canvasVideoLightboxClose.focus({ preventScroll: true });
-      } else {
-        elements.canvasVideoLightboxVideo.pause();
-        elements.canvasVideoLightboxVideo.removeAttribute("src");
-        elements.canvasVideoLightboxVideo.load();
-        const returnFocus = state.canvasVideoLightboxReturnFocus;
-        state.canvasVideoLightboxReturnFocus = null;
-        state.canvasVideoLightboxItemId = "";
-        if (restoreFocus && returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
-      }
-    }
-
-    function getDataEyesVideoProvider(model) {
-      const value = String(model || "").toLowerCase();
-      if (/seedance/.test(value)) return "seedance";
-      if (/kling/.test(value)) return "kling";
-      if (/hailuo|minimax|(?:^|[-_])(?:t2v|i2v|s2v)(?:[-_]|$)/.test(value)) return /h3/.test(value) ? "hailuo-h3" : "hailuo";
-      if (/vidu/.test(value)) return "vidu";
-      if (/jimeng/.test(value)) return "jimeng";
-      if (/grok/.test(value)) return "grok";
-      if (/wan|happyhorse/.test(value)) return "ali";
-      return "unknown";
-    }
-
-    function dataEyesResolution(config) {
-      const size = String(config.videoSize || config.size || "").toLowerCase();
-      if (/1080|2k/.test(size)) return "1080P";
-      if (/480/.test(size)) return "480p";
-      return "720P";
-    }
-
-    async function buildDataEyesVideoRequest(config, referenceFiles = []) {
-      const provider = getDataEyesVideoProvider(config.model);
-      const references = await Promise.all(referenceFiles.map((file) => readBlobAsDataUrl(file)));
-      const prompt = promptForRequest(config);
-      const ratio = getVideoAspectRatio(config);
-      const duration = Number(config.seconds || config.duration || 5);
-      const headers = { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json", Accept: "application/json" };
-      if (provider === "seedance") {
-        return { provider, endpoint: dataEyesUrl("seedance/api/v3/contents/generations/tasks"), method: "POST", headers, body: {
-          model: config.model, content: [{ type: "text", text: prompt }, ...references.map((url, index) => ({ type: "image_url", image_url: url, role: index === 0 ? "first_frame" : "reference_image" }))],
-          resolution: dataEyesResolution(config).toLowerCase(), ratio, duration, generate_audio: false, watermark: false
-        } };
-      }
-      if (provider === "kling") {
-        if (!references.length) throw new Error("DataEyesAI 的 Kling 当前接入要求至少连接一张首帧参考图。");
-        return { provider, endpoint: dataEyesUrl("kling/v1/videos/image2video"), method: "POST", headers, body: {
-          model_name: config.model, image: references[0].replace(/^data:image\/[^;]+;base64,/i, ""),
-          ...(references[1] ? { image_tail: references[1].replace(/^data:image\/[^;]+;base64,/i, "") } : {}),
-          prompt, duration: String(duration), mode: dataEyesResolution(config) === "1080P" ? "pro" : "std", sound: "off", watermark_info: { enabled: false }
-        } };
-      }
-      if (provider === "hailuo-h3") {
-        return { provider, endpoint: dataEyesUrl("hailuo/v2/video_generation"), method: "POST", headers, body: {
-          model: config.model, content: [{ type: "text", text: prompt }, ...references.map((url, index) => ({ type: "image_url", url, role: index === 0 ? "first_frame" : "reference_image" }))],
-          resolution: /2k/i.test(String(config.size || "")) ? "2K" : "768P", duration, ratio: references.length ? "adaptive" : ratio, aigc_watermark: false
-        } };
-      }
-      if (provider === "hailuo") {
-        return { provider, endpoint: dataEyesUrl("hailuo/v1/video_generation"), method: "POST", headers, body: {
-          model: config.model, prompt, ...(references[0] ? { first_frame_image: references[0] } : {}), duration, resolution: dataEyesResolution(config), prompt_optimizer: true, aigc_watermark: false
-        } };
-      }
-      if (provider === "vidu") {
-        return { provider, endpoint: dataEyesUrl(references.length ? "vidu/ent/v2/img2video" : "vidu/ent/v2/text2video"), method: "POST", headers, body: {
-          model: config.model, prompt, ...(references.length ? { images: [references[0]] } : {}), duration, resolution: dataEyesResolution(config), watermark: false
-        } };
-      }
-      if (provider === "jimeng") {
-        const reqKey = String(config.model || "").trim();
-        return { provider, endpoint: `${dataEyesUrl("jimeng")}?Action=CVSync2AsyncSubmitTask&Version=2022-08-31`, method: "POST", headers, body: {
-          req_key: reqKey, ...(references.length ? { binary_data_base64: references.map((url) => url.replace(/^data:image\/[^;]+;base64,/i, "")) } : {}), prompt, seed: -1, frames: duration >= 10 ? 241 : 121
-        } };
-      }
-      if (provider === "grok") {
-        return { provider, endpoint: dataEyesUrl("grok/v1/videos/generations"), method: "POST", headers, body: {
-          model: config.model, prompt, ...(references[0] ? { image: { url: references[0] } } : {}), duration, aspect_ratio: ratio, resolution: dataEyesResolution(config).toLowerCase()
-        } };
-      }
-      if (provider === "ali") {
-        const isHappyHorse = /happyhorse/.test(String(config.model || "").toLowerCase());
-        return { provider, endpoint: dataEyesUrl("ali/api/v1/services/aigc/video-generation/video-synthesis"), method: "POST", headers: { ...headers, ...(isHappyHorse ? { "X-DashScope-Async": "enable" } : {}) }, body: {
-          model: config.model, input: { prompt, media: references.map((url, index) => ({ type: index === 0 ? "first_frame" : "reference_image", url })) },
-          parameters: { resolution: dataEyesResolution(config), duration, watermark: false, prompt_extend: true }
-        } };
-      }
-      throw new Error(`DataEyesAI 尚未识别视频模型 ${config.model} 的专用任务协议。请先在模型列表中确认完整模型 ID。`);
-    }
-
-    function getDataEyesVideoStatusRequest(config, taskId) {
-      const provider = getDataEyesVideoProvider(config.model);
-      const headers = { Authorization: `Bearer ${config.key}`, Accept: "application/json" };
-      const encodedTaskId = encodeURIComponent(String(taskId));
-      if (provider === "seedance") return { endpoint: dataEyesUrl(`seedance/api/v3/contents/generations/tasks/${encodedTaskId}`), method: "GET", headers };
-      if (provider === "kling") return { endpoint: dataEyesUrl(`kling/v1/videos/image2video/${encodedTaskId}`), method: "GET", headers };
-      if (provider === "hailuo") return { endpoint: `${dataEyesUrl("hailuo/v1/query/video_generation")}?task_id=${encodedTaskId}`, method: "GET", headers };
-      if (provider === "hailuo-h3") return { endpoint: dataEyesUrl(`hailuo/v2/query/video_generation/${encodedTaskId}`), method: "GET", headers };
-      if (provider === "vidu") return { endpoint: `${dataEyesUrl("vidu/ent/v2/tasks")}?task_ids=${encodedTaskId}`, method: "GET", headers };
-      if (provider === "jimeng") return { endpoint: `${dataEyesUrl("jimeng")}?Action=CVSync2AsyncGetResult&Version=2022-08-31`, method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ req_key: config.model, task_id: taskId }) };
-      if (provider === "grok") return { endpoint: dataEyesUrl(`grok/v1/videos/${encodedTaskId}`), method: "GET", headers };
-      if (provider === "ali") return { endpoint: dataEyesUrl(`ali/api/v1/tasks/${encodedTaskId}`), method: "GET", headers };
-      throw new Error(`DataEyesAI 尚未识别视频模型 ${config.model} 的查询协议。`);
-    }
-
-    function openCanvasVideoLightbox(item, returnFocus = null) {
-      const src = createStoredVideoUrl(item?.videoFile);
-      if (!src) return;
-      state.canvasVideoLightboxItemId = String(item.id || "");
-      state.canvasVideoLightboxReturnFocus = returnFocus;
-      const video = elements.canvasVideoLightboxVideo;
-      video.pause();
-      video.muted = false;
-      video.loop = false;
-      video.src = src;
-      video.setAttribute("aria-label", item.title || "视频放大预览");
-      video.load();
-      setCanvasVideoLightbox(true);
-      video.play().catch(() => showToast("视频已打开，请点击播放", "warning"));
-    }
-
     function openImageLightbox() {
       const compareActive = !elements.previewCompare.hidden;
       const source = compareActive
@@ -31321,24 +30857,6 @@ ${strengthPrompt}
       const file = state.referenceFiles[index];
       if (!src || !file) return;
       openImageLightboxSource(src, `参考图片 ${index + 1}：${file.name}`, returnFocus);
-    }
-
-    function openReferenceAnnotationEditor(index, returnFocus = null) {
-      const file = state.referenceFiles[index];
-      const src = state.referenceUrls[index];
-      if (!file || !src) {
-        showToast("这张参考图片已不可用", "warning");
-        return;
-      }
-      loadCanvasAnnotationImage(file, {
-        src,
-        name: file.name || `参考图片 ${index + 1}`,
-        mimeType: file.type || "image/png"
-      }, null, index, {
-        origin: "workbench-reference",
-        projectId: state.activeProjectId,
-        returnFocus: returnFocus || document.activeElement
-      });
     }
 
     function getPreviewImageContext() {
@@ -31685,9 +31203,8 @@ ${strengthPrompt}
         elements.previewCompareAfter.removeAttribute("src");
       }
       if (isFailure) {
-        const displayReason = getDisplayFailureReason(metadata);
-        elements.previewFailureReason.textContent = displayReason || "请求未完成";
-        elements.previewFailureReason.title = displayReason || "";
+        elements.previewFailureReason.textContent = metadata.reason || "请求未完成";
+        elements.previewFailureReason.title = metadata.reason || "";
         elements.previewErrorDetails.textContent = formatFailureDetails(metadata);
       } else if (isImage) {
         const { image } = context.entry;
@@ -31957,7 +31474,7 @@ ${strengthPrompt}
       if (isEdit && !referenceFiles.length) return null;
 
       const apiMode = metadata.apiMode || elements.apiMode.value;
-      const endpoint = resolveImageEndpoint(model, isEdit);
+      const endpoint = apiUrl(isEdit ? "images/edits" : "images/generations");
       const resolutionTier = metadata.resolutionTier || "auto";
       const resolutionRatio = metadata.resolutionRatio || "auto";
       const resolvedResolution = resolvePromptAwareResolution(
@@ -33228,8 +32745,6 @@ ${strengthPrompt}
           const videoResult = await runVideoGenerationTask(task);
           generatedCount = 1;
           state.configIssue = "";
-          state.configIssueKind = "";
-          cancelConfigRecovery();
           updateConfigStatus();
           if (state.activeTasks.size === 1) setStatus("视频已生成并保存", "success");
           showToast("视频生成完成，已保存到 videos 文件夹", "success");
@@ -33323,8 +32838,6 @@ ${strengthPrompt}
         }
 
         state.configIssue = "";
-        state.configIssueKind = "";
-        cancelConfigRecovery();
         updateConfigStatus();
         renderImages();
         if (mismatchCount > 0) {
@@ -33406,11 +32919,8 @@ ${strengthPrompt}
           }
           renderImages();
           await persistTaskHistory();
-          if (scheduleNetworkConfigRecovery(error)) {
-            updateConfigStatus();
-          } else if (error instanceof TypeError || [0, 401, 403, 404].includes(Number(error.status || 0))) {
+          if (error instanceof TypeError || [0, 401, 403, 404].includes(Number(error.status || 0))) {
             state.configIssue = getFailureSummary(error);
-            state.configIssueKind = "config";
             updateConfigStatus();
           }
           if (state.activeTasks.size === 1) {
@@ -34171,60 +33681,7 @@ ${strengthPrompt}
         return content.map((part) => part?.text || part?.content || "").join("\n").trim();
       }
       if (typeof payload?.output_text === "string") return payload.output_text.trim();
-      if (Array.isArray(payload?.output)) {
-        return payload.output
-          .flatMap((item) => Array.isArray(item?.content) ? item.content : [])
-          .map((part) => part?.text || part?.content || "")
-          .filter(Boolean)
-          .join("\n")
-          .trim();
-      }
       return "";
-    }
-
-    function usesDataEyesResponses(model) {
-      if (!isDataEyesApi()) return false;
-      const normalized = String(model || "").trim();
-      const endpointTypes = state.modelEndpointTypes?.[normalized];
-      if (endpointTypes?.length) return endpointTypes.some((type) => /responses/i.test(type));
-      return /^(?:gpt-5|o[1-9]|codex)(?:$|[-:.])/i.test(normalized);
-    }
-
-    function toDataEyesResponsesInput(messages) {
-      return messages.map((message) => {
-        const role = message.role === "system" ? "developer" : message.role || "user";
-        const content = Array.isArray(message.content)
-          ? message.content.map((part) => {
-              if (part?.type === "image_url") {
-                return { type: "input_image", image_url: part?.image_url?.url || part?.image_url || "" };
-              }
-              return { type: "input_text", text: part?.text || part?.content || "" };
-            })
-          : [{ type: "input_text", text: String(message.content || "") }];
-        return { role, content };
-      });
-    }
-
-    function createTextRequest(model, messages, options = {}) {
-      if (usesDataEyesResponses(model)) {
-        return {
-          endpoint: apiUrl("responses"),
-          body: {
-            model,
-            input: toDataEyesResponsesInput(messages),
-            ...(options.responseFormat === "json_object" ? { text: { format: { type: "json_object" } } } : {})
-          }
-        };
-      }
-      return {
-        endpoint: apiUrl("chat/completions"),
-        body: {
-          model,
-          messages,
-          ...(options.temperature === undefined ? {} : { temperature: options.temperature }),
-          ...(options.responseFormat === "json_object" ? { response_format: { type: "json_object" } } : {})
-        }
-      };
     }
 
     function normalizeAssistantTaskDefinitions(value) {
@@ -34348,8 +33805,10 @@ ${strengthPrompt}
         return null;
       }
 
+      let endpoint;
       let apiKey;
       try {
+        endpoint = apiUrl("chat/completions");
         apiKey = getAssistantApiKey();
       } catch (error) {
         showToast(error.message, "error");
@@ -34399,19 +33858,22 @@ ${strengthPrompt}
               })
             : message.text
         }));
-        const textRequest = createTextRequest(model, [
-          { role: "system", content: ASSISTANT_SYSTEM_PROMPT },
-          ...history,
-          { role: "user", content: currentContent }
-        ], { temperature: 0.35 });
-        const response = await networkRequest(textRequest.endpoint, {
+        const response = await networkRequest(endpoint, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
             Accept: "application/json"
           },
-          body: JSON.stringify(textRequest.body),
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: ASSISTANT_SYSTEM_PROMPT },
+              ...history,
+              { role: "user", content: currentContent }
+            ],
+            temperature: 0.35
+          }),
           timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS,
           signal: controller.signal
         });
@@ -34612,8 +34074,10 @@ ${strengthPrompt}
         return null;
       }
 
+      let endpoint;
       let apiKey;
       try {
+        endpoint = apiUrl("chat/completions");
         apiKey = getAssistantApiKey();
       } catch (error) {
         showToast(error?.message || "提示词助手配置不可用", "error");
@@ -34656,18 +34120,21 @@ ${strengthPrompt}
               ...referenceDataUrls.map((url) => ({ type: "image_url", image_url: { url, detail: "low" } }))
             ]
           : contextText;
-        const textRequest = createTextRequest(model, [
-          { role: "system", content: ASSISTANT_SYSTEM_PROMPT },
-          { role: "user", content }
-        ], { temperature: 0.3 });
-        const response = await networkRequest(textRequest.endpoint, {
+        const response = await networkRequest(endpoint, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
             Accept: "application/json"
           },
-          body: JSON.stringify(textRequest.body),
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: ASSISTANT_SYSTEM_PROMPT },
+              { role: "user", content }
+            ],
+            temperature: 0.3
+          }),
           timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS,
           signal: controller.signal
         });
@@ -37698,23 +37165,28 @@ Write-Host 'JBB inspiration sync protocol removed.'
     }
 
     function getCanvasAssistantTextModelConfig() {
+      const endpoint = apiUrl("chat/completions");
       const apiKey = getAssistantApiKey();
       const model = String(elements.assistantModel.value || "gpt-4.1-mini").trim();
       if (!model) throw new Error("请先配置文本模型");
-      return { apiKey, model };
+      return { endpoint, apiKey, model };
     }
 
     async function requestCanvasAssistantTextModel({ messages, signal, responseFormat }) {
       const config = getCanvasAssistantTextModelConfig();
-      const textRequest = createTextRequest(config.model, messages, { temperature: 0.2, responseFormat });
-      const response = await networkRequest(textRequest.endpoint, {
+      const response = await networkRequest(config.endpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${config.apiKey}`,
           "Content-Type": "application/json",
           Accept: "application/json"
         },
-        body: JSON.stringify(textRequest.body),
+        body: JSON.stringify({
+          model: config.model,
+          messages,
+          temperature: 0.2,
+          ...(responseFormat === "json_object" ? { response_format: { type: "json_object" } } : {})
+        }),
         timeoutMs: DEFAULT_NETWORK_TIMEOUT_MS,
         signal
       });
@@ -38549,10 +38021,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
       item.height = size.height;
       node.style.width = `${size.width}px`;
       node.style.height = `${size.height}px`;
-      const position = findCanvasFreePosition(item, { x: item.x, y: item.y }, { preferredSide: "down" });
-      item.x = position.x;
-      item.y = position.y;
-      node.style.transform = `translate(${item.x}px, ${item.y}px)`;
       renderCanvasEdges();
       renderCanvasMinimap();
       saveCanvasLayout(true);
@@ -38622,23 +38090,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
       const size = getCanvasItemBounds(item);
       const stepX = size.width + CANVAS_LAYOUT_COLLISION_GAP;
       const stepY = size.height + CANVAS_LAYOUT_COLLISION_GAP;
-      const preferredSide = String(options.preferredSide || "right");
-      const scoreOffset = (value) => {
-        const distance = Math.hypot(value.column * stepX, value.row * stepY);
-        const sidePenalty =
-          preferredSide === "left"
-            ? (value.column > 0 ? stepX * 4 : 0)
-            : preferredSide === "right"
-              ? (value.column < 0 ? stepX * 4 : 0)
-              : preferredSide === "down"
-                ? (value.row < 0 ? stepY * 4 : 0)
-                : preferredSide === "up"
-                  ? (value.row > 0 ? stepY * 4 : 0)
-                  : 0;
-        const verticalPenalty = value.row < 0 && preferredSide !== "up" ? stepY * 0.35 : 0;
-        const horizontalPenalty = value.column < 0 && preferredSide !== "left" ? stepX * 0.25 : 0;
-        return distance + sidePenalty + verticalPenalty + horizontalPenalty;
-      };
       for (let radius = 1; radius <= 40; radius += 1) {
         const offsets = [];
         for (let row = -radius; row <= radius; row += 1) {
@@ -38647,7 +38098,11 @@ Write-Host 'JBB inspiration sync protocol removed.'
             offsets.push({ column, row });
           }
         }
-        offsets.sort((left, right) => scoreOffset(left) - scoreOffset(right));
+        offsets.sort((left, right) => {
+          const score = (value) => Math.abs(value.column) + Math.abs(value.row)
+            + (value.row < 0 ? 1000 : 0) + (value.column < 0 ? 500 : 0);
+          return score(left) - score(right);
+        });
         for (const offset of offsets) {
           const x = startX + offset.column * stepX;
           const y = startY + offset.row * stepY;
@@ -38668,10 +38123,9 @@ Write-Host 'JBB inspiration sync protocol removed.'
       const baseY = Number(target.y || 0) - minY;
       const groupWidth = Math.max(1, maxX - minX);
       const groupHeight = Math.max(1, maxY - minY);
-      const collisionItems = Array.isArray(options.items) ? options.items : state.canvasItems;
       const canPlace = (offsetX, offsetY) => items.every((item) => {
         const rect = getCanvasItemRect(item, item.x + offsetX, item.y + offsetY);
-        return collisionItems.every((other) => ignored.has(other.id) || !canvasRectsOverlap(rect, getCanvasItemRect(other)));
+        return state.canvasItems.every((other) => ignored.has(other.id) || !canvasRectsOverlap(rect, getCanvasItemRect(other)));
       });
       if (canPlace(baseX, baseY)) return { x: baseX, y: baseY };
       for (let radius = 1; radius <= 30; radius += 1) {
@@ -38681,9 +38135,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
           { x: baseX + radius * (groupWidth + CANVAS_LAYOUT_COLLISION_GAP), y: baseY + radius * (groupHeight + CANVAS_LAYOUT_COLLISION_GAP) },
           { x: baseX - radius * (groupWidth + CANVAS_LAYOUT_COLLISION_GAP), y: baseY }
         ];
-        candidates.sort((left, right) =>
-          Math.hypot(left.x - baseX, left.y - baseY) - Math.hypot(right.x - baseX, right.y - baseY)
-        );
         const found = candidates.find((candidate) => canPlace(candidate.x, candidate.y));
         if (found) return found;
       }
@@ -38740,27 +38191,9 @@ Write-Host 'JBB inspiration sync protocol removed.'
       return { x, y };
     }
 
-    function getCanvasGeneratorInputPreferredPosition(generateItem, item, items = state.canvasItems, edges = state.canvasEdges) {
-      const itemBounds = getCanvasItemBounds(item, items === state.canvasItems);
-      const siblings = getCanvasGeneratorInputItems(generateItem, items, edges).filter((candidate) => candidate.id !== item.id);
-      const x = generateItem.x - itemBounds.width - CANVAS_LAYOUT_HORIZONTAL_GAP;
-      const y = siblings.length
-        ? Math.max(...siblings.map((candidate) => candidate.y + getCanvasItemBounds(candidate, items === state.canvasItems).height)) + CANVAS_LAYOUT_VERTICAL_GAP
-        : generateItem.y;
-      return { x, y };
-    }
-
-    function placeCanvasGeneratorInputNode(generateItem, item, items = state.canvasItems, edges = state.canvasEdges) {
-      const preferred = getCanvasGeneratorInputPreferredPosition(generateItem, item, items, edges);
-      const position = findCanvasFreePosition(item, preferred, { items, preferredSide: "left" });
-      item.x = position.x;
-      item.y = position.y;
-      return item;
-    }
-
     function placeCanvasGeneratorOutputNode(generateItem, item, items = state.canvasItems, edges = state.canvasEdges) {
       const preferred = getCanvasGeneratorOutputPreferredPosition(generateItem, item, items, edges);
-      const position = findCanvasFreePosition(item, preferred, { items, preferredSide: "right" });
+      const position = findCanvasFreePosition(item, preferred, { items });
       item.x = position.x;
       item.y = position.y;
       return item;
@@ -39109,16 +38542,13 @@ Write-Host 'JBB inspiration sync protocol removed.'
           if (replaceReferenceNodeId === item.id) item.recordIds = [];
           if (!item.titleCustomized && replaceReferenceNodeId !== item.id) item.title = item.sources.length > 1 ? `${item.sources.length} 张参考图` : item.sources[0]?.name || "参考图";
         } else {
-          const pendingTarget = state.canvasItems.find((candidate) => candidate.id === pendingTargetId && candidate.type === "generate");
           item = createCanvasItem("image", {
             title: sources.length > 1 ? `${sources.length} 张参考图` : sources[0].name,
             sources,
             ...(contextPoint ? { x: contextPoint.x, y: contextPoint.y } : {})
           });
-          if (pendingTarget) {
-            placeCanvasGeneratorInputNode(pendingTarget, item);
-          } else {
-            const position = findCanvasFreePosition(item, { x: item.x, y: item.y }, { preferredSide: "down" });
+          if (!pendingTargetId) {
+            const position = findCanvasFreePosition(item, { x: item.x, y: item.y });
             item.x = position.x;
             item.y = position.y;
           }
@@ -39515,13 +38945,7 @@ Write-Host 'JBB inspiration sync protocol removed.'
       elements.canvasAnnotationDelete.disabled = !session?.selectedId;
       elements.canvasAnnotationClear.disabled = !session?.annotations.length;
       elements.canvasAnnotationSubmit.disabled = !getCanvasAnnotationRequirements(session).some((annotation) => annotation.text.trim()) || Boolean(session?.submitting);
-      elements.canvasAnnotationSubmit.textContent = session?.submitting
-        ? (session?.origin === "workbench-reference" ? "正在回填" : "正在创建任务")
-        : session?.origin === "workbench-reference"
-          ? "回填到窗口"
-          : session?.origin === "canvas" || session?.origin === "workbench-result"
-          ? "继续生成修改版"
-          : "回填到窗口";
+      elements.canvasAnnotationSubmit.textContent = session?.submitting ? "正在创建任务" : "生成修改版";
     }
 
     function pushCanvasAnnotationHistory() {
@@ -40217,7 +39641,7 @@ Write-Host 'JBB inspiration sync protocol removed.'
       try {
         const file = await canvasSourceToFile(source, 0);
         loadCanvasAnnotationImage(file, source, null, 0, {
-          origin: "workbench-result",
+          origin: "workbench",
           projectId: metadata.projectId || state.activeProjectId,
           sourceMetadata: metadata,
           returnFocus: returnFocus || document.activeElement
@@ -40225,33 +39649,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
       } catch (error) {
         showToast(error?.message || "工作台图片读取失败", "error");
       }
-    }
-
-    function backfillWorkbenchReferenceFile(index, file) {
-      const nextFile = new File([file], file.name || `reference-${index + 1}.png`, {
-        type: file.type || "image/png",
-        lastModified: Date.now()
-      });
-      const hasOriginalReference = Number.isInteger(index) && index >= 0 && index < state.referenceFiles.length;
-      const originalReferenceNumber = hasOriginalReference ? index + 1 : Math.max(1, state.referenceFiles.length);
-      if (hasOriginalReference) {
-        state.referenceFiles.splice(index + 1, 0, nextFile);
-      } else {
-        state.referenceFiles.push(nextFile);
-      }
-      const insertedIndex = state.referenceFiles.indexOf(nextFile);
-      renderReferenceFiles();
-      updateDynamicControls();
-      return {
-        file: nextFile,
-        originalReferenceNumber,
-        annotationReferenceNumber: insertedIndex >= 0 ? insertedIndex + 1 : state.referenceFiles.length
-      };
-    }
-
-    function backfillWorkbenchAnnotationPrompt(prompt) {
-      elements.prompt.value = String(prompt || "");
-      elements.prompt.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
     function drawCanvasAnnotationArrow(context, annotation, session) {
@@ -40374,16 +39771,9 @@ Write-Host 'JBB inspiration sync protocol removed.'
       return new File([blob], `annotation-${createRecordId()}.png`, { type: "image/png", lastModified: Date.now() });
     }
 
-    function getCanvasAnnotationReferenceLabel(number) {
-      const normalized = Math.max(1, Number(number) || 1);
-      if (normalized === 1) return "第一张图片";
-      if (normalized === 2) return "第二张图片";
-      return `第${normalized}张图片`;
-    }
-
-    function buildCanvasAnnotationPrompt(instructions, originalReferenceNumber = 1, annotationReferenceNumber = 2) {
+    function buildCanvasAnnotationPrompt(instructions) {
       const list = instructions.map((instruction, index) => `${index + 1}. ${instruction}`).join("\n");
-      return `${getCanvasAnnotationReferenceLabel(originalReferenceNumber)}是干净原图。\n${getCanvasAnnotationReferenceLabel(annotationReferenceNumber)}是批注示意图，彩色渐粗弧形箭头、矩形、椭圆、画笔标记、编号和文字只用于定位；批注可能位于原图外侧的白色留白区。\n\n修改要求：\n${list}\n\n严格保留原图主体、构图、视角、原始画面比例和未被指出的区域。最终图片不得保留箭头、矩形、椭圆、画笔轨迹、编号、批注文字、白色留白、选框或编辑器界面。`;
+      return `第一张图片是干净原图。\n第二张图片是批注示意图，彩色渐粗弧形箭头、矩形、椭圆、画笔标记、编号和文字只用于定位；批注可能位于原图外侧的白色留白区。\n\n修改要求：\n${list}\n\n严格保留原图主体、构图、视角、原始画面比例和未被指出的区域。最终图片不得保留箭头、矩形、椭圆、画笔轨迹、编号、批注文字、白色留白、选框或编辑器界面。`;
     }
 
     function getCanvasAnnotationPreferredPosition(source, item, items = state.canvasItems) {
@@ -40419,96 +39809,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
       return Math.max(Number(metadata?.revisionIndex || 0), ...childRevisions, 0) + 1;
     }
 
-    function createWorkbenchAnnotationEditConfig(session, revisedPrompt, instructions, compositeFile, compositeFilename, annotationId, revisionIndex) {
-      const metadata = session?.sourceMetadata || {};
-      const prompt = String(revisedPrompt || "").trim();
-      const model = String(metadata.model || "gpt-image-2").trim();
-      if (!prompt) throw new Error("请至少填写一条修改要求");
-      if (!model) throw new Error("原任务缺少模型信息，无法创建批注修改任务");
-      const modelProfile = getJbbModelProfile(model);
-      if (modelProfile.kind !== "image") throw new Error(`${modelProfile.label} 已识别为视频模型，无法用于图片批注修改。`);
-      if (modelProfile.editSupported === false) {
-        throw new Error(`${modelProfile.label} 不支持本地参考图编辑，无法创建批注修改任务。`);
-      }
-      const apiMode = metadata.apiMode || elements.apiMode.value;
-      const endpoint = resolveImageEndpoint(model, true);
-      const naturalSize = session?.naturalWidth && session?.naturalHeight
-        ? `${session.naturalWidth}x${session.naturalHeight}`
-        : "";
-      const sourceRatio = getAspectRatioLabel(naturalSize || metadata.actualSize || metadata.size || "");
-      const resolutionTier = metadata.resolutionTier || "auto";
-      const resolutionRatio = sourceRatio && sourceRatio !== "-"
-        ? sourceRatio
-        : metadata.resolutionRatio || "auto";
-      const resolvedResolution = resolvePromptAwareResolution(
-        resolutionTier,
-        resolutionRatio,
-        prompt,
-        model,
-        endpoint,
-        apiMode
-      );
-      const size = resolvedResolution.size || metadata.size || "auto";
-      const expectedSize = getJbbSizeMode({ endpoint, model, apiMode, isEdit: true }) === "fixed"
-        ? modelProfile.editExpectedSize
-        : size;
-      const outputFormat = metadata.outputFormat || "png";
-      const background = (outputFormat === "jpeg" || isGptImage2(model)) && metadata.background === "transparent"
-        ? "opaque"
-        : metadata.background || "auto";
-      const responseWarning = metadata.responseWarning || elements.responseWarning.value;
-      const requestTimeout = metadata.requestTimeout || elements.requestTimeout.value;
-      const parentRecordId = String(metadata.recordId || "");
-      return {
-        endpoint,
-        key: getApiKey(),
-        model,
-        modelFamily: modelProfile.family,
-        prompt,
-        apiMode,
-        size,
-        expectedSize,
-        quality: "auto",
-        background,
-        outputFormat,
-        outputCompression: Number(metadata.outputCompression ?? 50),
-        moderation: metadata.moderation || "auto",
-        inputFidelity: metadata.inputFidelity || "auto",
-        count: 1,
-        retryTransient: Boolean(metadata.retryTransient),
-        responseWarning,
-        responseWarningMs: resolveResponseWarning(responseWarning, resolvedResolution.tier),
-        requestTimeout,
-        requestTimeoutMs: resolveRequestTimeout(requestTimeout, resolvedResolution.tier),
-        resolutionTier,
-        resolutionRatio,
-        resolvedResolutionTier: resolvedResolution.tier,
-        resolvedResolutionRatio: resolvedResolution.ratio,
-        resolutionSource: resolvedResolution.source,
-        isEdit: true,
-        referenceFiles: [session.originalFile, compositeFile],
-        taskSetId: "",
-        taskSetType: "",
-        taskSetTitle: "",
-        taskSetPurpose: "",
-        taskSetIndex: 0,
-        taskSetTotal: 0,
-        projectId: metadata.projectId || session.projectId || state.activeProjectId,
-        source: "annotation-edit",
-        canvasNodeId: "",
-        canvasRunId: "",
-        parentTaskId: metadata.taskId || null,
-        parentRecordId,
-        canvasSourceNodeId: "",
-        annotationId,
-        revisionIndex,
-        annotationInstructions: instructions,
-        annotationCompositeFile: compositeFilename,
-        canvasGroupId: "",
-        skipReferenceMentionGuide: true
-      };
-    }
-
     async function submitCanvasAnnotationEdit() {
       const session = getCanvasAnnotationSession();
       if (!session || session.submitting || state.submitting) return;
@@ -40526,32 +39826,13 @@ Write-Host 'JBB inspiration sync protocol removed.'
       session.submitting = true;
       state.submitting = true;
       updateCanvasAnnotationHistoryUi();
+      let taskRegistered = false;
       try {
-        const compositeFile = await exportCanvasAnnotationComposite();
-        if (session.origin === "workbench-reference" || (!canvasOrigin && session.origin !== "workbench-result")) {
-          const revisedFile = new File([compositeFile], `annotation-${createRecordId()}.png`, {
-            type: "image/png",
-            lastModified: Date.now()
-          });
-          const referencePair = backfillWorkbenchReferenceFile(session.sourceIndex, revisedFile);
-          const revisedPrompt = buildCanvasAnnotationPrompt(
-            instructions,
-            referencePair.originalReferenceNumber,
-            referencePair.annotationReferenceNumber
-          );
-          backfillWorkbenchAnnotationPrompt(revisedPrompt);
-          showToast("批注结果已回填到当前窗口");
-          session.submitting = false;
-          state.submitting = false;
-          closeCanvasAnnotationEditor();
-          window.requestAnimationFrame(() => focusReferenceComposer());
-          return;
-        }
-        const revisedPrompt = buildCanvasAnnotationPrompt(instructions);
         if (!state.storageReady) {
           const connected = await connectStorageDirectory(false, state.workspaceDirectoryHandle ? "restore" : "first-connect");
           if (!connected) throw new Error("固定应用数据目录尚未就绪，批注任务未提交");
         }
+        const compositeFile = await exportCanvasAnnotationComposite();
         const annotationId = createRecordId();
         const compositeFilename = `annotation-${annotationId}.png`;
         await window.jbb.storage.writeBinary({
@@ -40559,42 +39840,21 @@ Write-Host 'JBB inspiration sync protocol removed.'
           filename: compositeFilename,
           data: await compositeFile.arrayBuffer()
         });
-        if (session.origin === "workbench-result") {
-          const revisionIndex = getWorkbenchAnnotationRevisionIndex(session.sourceMetadata);
-          const config = createWorkbenchAnnotationEditConfig(
-            session,
-            revisedPrompt,
-            instructions,
-            compositeFile,
-            compositeFilename,
-            annotationId,
-            revisionIndex
-          );
-          const task = createGenerationTask(config, 0, 1);
-          state.activeTasks.set(task.id, task);
-          updateBusyState();
-          startGenerationTimer();
-          renderImages();
-          setStatus(`正在请求 ${config.model}`, "working");
-          notifyNewTasks([task], `批注修改 V${revisionIndex} 已开始`);
-          enqueueGenerationTasks([task]);
-          session.submitting = false;
-          state.submitting = false;
-          closeCanvasAnnotationEditor();
-          return;
-        }
         const ratio = getAspectRatioLabel(`${session.naturalWidth}x${session.naturalHeight}`) || "auto";
-        const revisionIndex = getCanvasAnnotationRevisionIndex(source);
+        const revisionIndex = canvasOrigin
+          ? getCanvasAnnotationRevisionIndex(source)
+          : getWorkbenchAnnotationRevisionIndex(session.sourceMetadata);
         const parentRecordId = String(session.source.recordId || "");
         const parentEntry = parentRecordId ? state.images.find((entry) => entry.metadata.recordId === parentRecordId) : null;
+        const prompt = buildCanvasAnnotationPrompt(instructions);
         const config = {
-          ...getGenerationConfig(revisedPrompt, {
+          ...getGenerationConfig(prompt, {
             modelOverride: "gpt-image-2",
             resolutionTierOverride: "auto",
             resolutionRatioOverride: ratio,
             referenceFilesOverride: [session.originalFile, compositeFile],
             projectIdOverride: session.projectId || state.activeProjectId,
-            source: "annotation-edit",
+            source: canvasOrigin ? "annotation-edit" : "annotation-edit-workbench",
             canvasNodeId: source?.id || "",
             canvasRunId: annotationId,
             parentTaskId: parentEntry?.metadata?.taskId || session.sourceMetadata?.taskId || null,
@@ -40610,42 +39870,45 @@ Write-Host 'JBB inspiration sync protocol removed.'
           skipReferenceMentionGuide: true
         };
         const task = createGenerationTask(config, 0, 1);
-        const taskNode = createCanvasItem("task", {
-          title: `批注修改 V${revisionIndex}`,
-          taskId: task.id,
-          taskState: "waiting",
-          status: "等待中",
-          taskDetail: "批注修改任务已进入生成队列",
-          taskSourceNodeId: source.id,
-          taskKind: "annotation-edit",
-          runId: annotationId,
-          annotationSourceNodeId: source.id,
-          annotationSourceIndex: session.sourceIndex,
-          annotationId,
-          revisionIndex,
-          annotationInstructions: instructions,
-          annotationCompositeFile: compositeFilename,
-          taskSnapshot: {
-            prompt: revisedPrompt,
-            model: "gpt-image-2",
-            sizeValue: `auto:${ratio}`,
-            quality: "auto",
-            count: 1,
-            groupMode: false,
+        if (canvasOrigin) {
+          const taskNode = createCanvasItem("task", {
+            title: `批注修改 V${revisionIndex}`,
+            taskId: task.id,
+            taskState: "waiting",
+            status: "等待中",
+            taskDetail: "批注修改任务已进入生成队列",
+            taskSourceNodeId: source.id,
+            taskKind: "annotation-edit",
+            runId: annotationId,
+            annotationSourceNodeId: source.id,
             annotationSourceIndex: session.sourceIndex,
-            annotations: cloneCanvasAnnotations(session.annotations)
-          }
-        });
-        placeCanvasAnnotationNode(source, taskNode);
-        task.config.canvasTaskNodeId = taskNode.id;
-        pushCanvasHistory();
-        state.canvasItems.push(taskNode);
-        state.canvasEdges.push({ id: createRecordId(), from: source.id, to: taskNode.id });
-        renderCanvasNodes();
-        selectCanvasItem(taskNode.id);
-        saveCanvasLayout(true);
-        focusCanvasItemInViewport(taskNode, { scale: 1, select: false });
+            annotationId,
+            revisionIndex,
+            annotationInstructions: instructions,
+            annotationCompositeFile: compositeFilename,
+            taskSnapshot: {
+              prompt,
+              model: "gpt-image-2",
+              sizeValue: `auto:${ratio}`,
+              quality: "auto",
+              count: 1,
+              groupMode: false,
+              annotationSourceIndex: session.sourceIndex,
+              annotations: cloneCanvasAnnotations(session.annotations)
+            }
+          });
+          placeCanvasAnnotationNode(source, taskNode);
+          task.config.canvasTaskNodeId = taskNode.id;
+          pushCanvasHistory();
+          state.canvasItems.push(taskNode);
+          state.canvasEdges.push({ id: createRecordId(), from: source.id, to: taskNode.id });
+          renderCanvasNodes();
+          selectCanvasItem(taskNode.id);
+          saveCanvasLayout(true);
+          focusCanvasItemInViewport(taskNode, { scale: 1, select: false });
+        }
         state.activeTasks.set(task.id, task);
+        taskRegistered = true;
         renderImages();
         notifyNewTasks([task], `批注修改 V${revisionIndex} 已开始`);
         enqueueGenerationTasks([task]);
@@ -40657,7 +39920,7 @@ Write-Host 'JBB inspiration sync protocol removed.'
         showToast(error?.message || "批注修改任务创建失败", "error");
       } finally {
         state.submitting = false;
-        updateCanvasAnnotationHistoryUi();
+        if (!taskRegistered) updateCanvasAnnotationHistoryUi();
         updateBusyState();
       }
     }
@@ -41863,7 +41126,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
         x: generateItem.x - getCanvasItemDefaultSize("prompt").width - CANVAS_LAYOUT_HORIZONTAL_GAP,
         y: generateItem.y
       });
-      placeCanvasGeneratorInputNode(generateItem, promptItem);
       state.canvasItems.push(promptItem);
       const oldPromptEdgeIds = new Set(oldPromptEdges.map((edge) => edge.id));
       state.canvasEdges = state.canvasEdges.filter((edge) => !oldPromptEdgeIds.has(edge.id));
@@ -41886,7 +41148,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
         x: generateItem.x - getCanvasItemDefaultSize("image").width - CANVAS_LAYOUT_HORIZONTAL_GAP,
         y: generateItem.y
       });
-      placeCanvasGeneratorInputNode(generateItem, imageItem);
       state.canvasItems.push(imageItem);
       state.canvasEdges.push({ id: createRecordId(), from: imageItem.id, to: generateItem.id });
       state.canvasSelectedIds = new Set([imageItem.id]);
@@ -41895,52 +41156,15 @@ Write-Host 'JBB inspiration sync protocol removed.'
       focusCanvasItemInViewport(imageItem, { select: false });
     }
 
-    function clearCanvasUploadIntent({ clearContextPoint = true } = {}) {
-      state.canvasPendingImageTargetId = "";
-      state.canvasPendingReferenceNodeId = "";
-      state.canvasReplaceReferenceNodeId = "";
-      if (clearContextPoint) state.canvasContextPoint = null;
-    }
-
-    function finishCanvasUploadPicker() {
-      state.canvasUploadPickerToken += 1;
-      state.canvasUploadPickerCleanup?.();
-      state.canvasUploadPickerCleanup = null;
-    }
-
-    function armCanvasUploadPicker() {
-      finishCanvasUploadPicker();
-      const pickerToken = state.canvasUploadPickerToken;
-      let dialogBlurred = false;
-      let cleanedUp = false;
-      const cleanup = () => {
-        if (cleanedUp) return;
-        cleanedUp = true;
-        window.removeEventListener("blur", markDialogBlur);
-        window.removeEventListener("focus", handleDialogFocus);
-        if (state.canvasUploadPickerCleanup === cleanup) state.canvasUploadPickerCleanup = null;
-      };
-      const markDialogBlur = () => {
-        dialogBlurred = true;
-      };
-      const handleDialogFocus = () => {
-        if (!dialogBlurred) return;
-        window.setTimeout(() => {
-          if (state.canvasUploadPickerToken !== pickerToken) return;
-          if (elements.canvasUpload.files?.length) return;
-          cleanup();
-          clearCanvasUploadIntent();
-        }, 250);
-      };
-      state.canvasUploadPickerCleanup = cleanup;
-      window.addEventListener("blur", markDialogBlur, { once: true });
-      window.addEventListener("focus", handleDialogFocus);
-    }
-
     function uploadIntoCanvasReference(item) {
       state.canvasPendingReferenceNodeId = item.id;
-      state.canvasReplaceReferenceNodeId = item.id;
-      armCanvasUploadPicker();
+      window.addEventListener("focus", () => {
+        window.setTimeout(() => {
+          if (elements.canvasUpload.files?.length) return;
+          state.canvasPendingReferenceNodeId = "";
+          state.canvasContextPoint = null;
+        }, 0);
+      }, { once: true });
       elements.canvasUpload.click();
     }
 
@@ -41948,7 +41172,14 @@ Write-Host 'JBB inspiration sync protocol removed.'
       if (!item || item.type !== "image") return;
       state.canvasPendingReferenceNodeId = item.id;
       state.canvasReplaceReferenceNodeId = item.id;
-      armCanvasUploadPicker();
+      window.addEventListener("focus", () => {
+        window.setTimeout(() => {
+          if (elements.canvasUpload.files?.length) return;
+          state.canvasPendingReferenceNodeId = "";
+          state.canvasReplaceReferenceNodeId = "";
+          state.canvasContextPoint = null;
+        }, 0);
+      }, { once: true });
       elements.canvasUpload.click();
     }
 
@@ -42639,85 +41870,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
       return hint;
     }
 
-    function bindCanvasVideoPreviewInteractions(node, video, item) {
-      const hoverDelayMs = 1500;
-      let hoverTimer = 0;
-      let hoverActive = false;
-      let lastPointerX = 0;
-      let lastPointerY = 0;
-      let hasPointerPosition = false;
-
-      const stopHoverPreview = (reset = true) => {
-        if (hoverTimer) window.clearTimeout(hoverTimer);
-        hoverTimer = 0;
-        if (hoverActive) {
-          video.pause();
-          if (reset) {
-            try { video.currentTime = 0; } catch {}
-          }
-        }
-        hoverActive = false;
-        video.classList.remove("is-hover-previewing");
-      };
-
-      const scheduleHoverPreview = () => {
-        if (hoverTimer || hoverActive) return;
-        hoverTimer = window.setTimeout(() => {
-          hoverTimer = 0;
-          hoverActive = true;
-          video.muted = true;
-          video.loop = true;
-          video.classList.add("is-hover-previewing");
-          video.play().catch(() => {
-            hoverActive = false;
-            video.classList.remove("is-hover-previewing");
-          });
-        }, hoverDelayMs);
-      };
-
-      node.addEventListener("pointerenter", (event) => {
-        if (event.pointerType && event.pointerType !== "mouse") return;
-        lastPointerX = event.clientX;
-        lastPointerY = event.clientY;
-        hasPointerPosition = true;
-        scheduleHoverPreview();
-      });
-      node.addEventListener("pointermove", (event) => {
-        if (event.pointerType && event.pointerType !== "mouse") return;
-        if (!hasPointerPosition || Math.hypot(event.clientX - lastPointerX, event.clientY - lastPointerY) >= 2) {
-          lastPointerX = event.clientX;
-          lastPointerY = event.clientY;
-          hasPointerPosition = true;
-          if (!hoverActive) {
-            if (hoverTimer) window.clearTimeout(hoverTimer);
-            hoverTimer = 0;
-            scheduleHoverPreview();
-          }
-        }
-      });
-      node.addEventListener("pointerleave", () => {
-        hasPointerPosition = false;
-        stopHoverPreview();
-      });
-      node.addEventListener("pointerdown", () => stopHoverPreview(false));
-      video.addEventListener("dblclick", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        stopHoverPreview(false);
-        openCanvasVideoLightbox(item, video);
-      });
-      video.addEventListener("keydown", (event) => {
-        if (!(event.key === "Enter" || event.key === " ")) return;
-        event.preventDefault();
-        event.stopPropagation();
-        stopHoverPreview(false);
-        openCanvasVideoLightbox(item, video);
-      });
-      video.setAttribute("aria-label", item.title || "视频结果，双击放大播放");
-      video.tabIndex = 0;
-      return stopHoverPreview;
-    }
-
     function renderCanvasNodes(options = {}) {
       const settleRenderedImages = options.settleRenderedImages === true;
       elements.canvasNodeLayer.replaceChildren();
@@ -42910,29 +42062,40 @@ Write-Host 'JBB inspiration sync protocol removed.'
             video.preload = "metadata";
             video.playsInline = true;
             video.tabIndex = 0;
-            video.title = "双击放大播放 · 按住拖动";
-            video.muted = true;
+            video.title = "双击播放或暂停";
+            video.setAttribute("aria-label", item.title || "生成视频");
             const sizeMatch = String(item.videoActualSize || item.taskSnapshot?.sizeValue || "").match(/^(\d+)x(\d+)$/i);
             if (sizeMatch && Number(sizeMatch[1]) > 0 && Number(sizeMatch[2]) > 0) {
               node.style.setProperty("--canvas-result-video-ratio", `${sizeMatch[1]} / ${sizeMatch[2]}`);
             }
+            const toggleVideoPlayback = () => {
+              if (video.paused || video.ended) {
+                video.play().catch(() => showToast("视频暂时无法播放", "error"));
+              } else {
+                video.pause();
+              }
+            };
             video.addEventListener("pointerdown", (event) => startCanvasNodeDrag(event, item));
             video.addEventListener("click", (event) => event.stopPropagation());
-            video.addEventListener("contextmenu", (event) => event.stopPropagation());
-            bindCanvasVideoPreviewInteractions(node, video, item);
-            node.addEventListener("dblclick", (event) => {
-              if (event.target.closest("button, input, select, textarea, video")) return;
+            video.addEventListener("dblclick", (event) => {
               event.preventDefault();
               event.stopPropagation();
-              openCanvasVideoLightbox(item, video);
+              toggleVideoPlayback();
             });
+            video.addEventListener("keydown", (event) => {
+              if (!["Enter", " "].includes(event.key)) return;
+              event.preventDefault();
+              event.stopPropagation();
+              toggleVideoPlayback();
+            });
+            video.addEventListener("contextmenu", (event) => event.stopPropagation());
             const meta = document.createElement("span");
             meta.className = "canvas-result-video-meta";
             const duration = item.videoActualDuration ? `${item.videoActualDuration}秒` : `${item.taskSnapshot?.videoDuration || ""}秒`;
             meta.textContent = [item.videoActualSize, duration].filter(Boolean).join(" · ");
             body.append(video);
             node.append(label, resultStatus, body, meta, createCanvasPort(item, "in"));
-            node.appendChild(createCanvasNodeInteractionHint("悬停自动播放 · 双击放大 · 按住拖动"));
+            node.appendChild(createCanvasNodeInteractionHint("双击播放 · 按住拖动"));
             appendCanvasReferenceResizeHandles(node, item);
           } else {
           const sources = getCanvasItemImageSources(item);
@@ -44373,19 +43536,10 @@ Write-Host 'JBB inspiration sync protocol removed.'
     });
     elements.canvasAddPrompt.addEventListener("click", addCanvasPromptNode);
     elements.canvasAddGroup.addEventListener("click", addCanvasGroupNode);
-    elements.canvasUploadTrigger.addEventListener("click", () => {
-      finishCanvasUploadPicker();
-      clearCanvasUploadIntent();
-      elements.canvasUpload.click();
-    });
+    elements.canvasUploadTrigger.addEventListener("click", () => elements.canvasUpload.click());
     elements.canvasUpload.addEventListener("change", () => {
-      finishCanvasUploadPicker();
       addUploadedImagesToCanvas(elements.canvasUpload.files);
       elements.canvasUpload.value = "";
-    });
-    elements.canvasUpload.addEventListener("cancel", () => {
-      finishCanvasUploadPicker();
-      clearCanvasUploadIntent();
     });
     elements.canvasOpenAssets.addEventListener("click", () => openCanvasAssetPicker());
     elements.canvasCloseAssets.addEventListener("click", closeCanvasAssetPicker);
@@ -45181,10 +44335,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
     elements.imageLightbox.addEventListener("click", (event) => {
       if (event.target === elements.imageLightbox) setImageLightbox(false);
     });
-    elements.canvasVideoLightboxClose.addEventListener("click", () => setCanvasVideoLightbox(false));
-    elements.canvasVideoLightbox.addEventListener("click", (event) => {
-      if (event.target === elements.canvasVideoLightbox) setCanvasVideoLightbox(false);
-    });
     elements.imageContextAnnotate.addEventListener("click", annotateImageFromContextMenu);
     elements.imageContextCopy.addEventListener("click", copyImageFromContextMenu);
     elements.imageContextSave.addEventListener("click", saveImageFromContextMenu);
@@ -45290,14 +44440,7 @@ Write-Host 'JBB inspiration sync protocol removed.'
       elements.referenceFiles.value = "";
     });
     elements.referenceStackTrigger.addEventListener("click", () => {
-      const index = state.referenceFiles.length - 1;
-      if (index >= 0) openReferenceImageLightbox(index, elements.referenceStackTrigger);
-    });
-    elements.referenceStackTrigger.addEventListener("contextmenu", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const index = state.referenceFiles.length - 1;
-      if (index >= 0) openReferenceAnnotationEditor(index, elements.referenceStackTrigger);
+      setReferenceStackOpen(!elements.referenceStack.classList.contains("is-open"));
     });
     elements.referenceStackTrigger.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "mouse") openReferencePointerIntent();
@@ -45397,8 +44540,6 @@ Write-Host 'JBB inspiration sync protocol removed.'
           invalidateModelLatency();
         }
         state.configIssue = "";
-        state.configIssueKind = "";
-        cancelConfigRecovery();
         updateConfigStatus();
         if (control === elements.modelInput || control === elements.baseUrl) updateDynamicControls();
         if ([elements.baseUrl, elements.apiKey, elements.assistantApiKey, elements.videoApiKey].includes(control)) {
@@ -45553,9 +44694,7 @@ Write-Host 'JBB inspiration sync protocol removed.'
         }
         return;
       }
-      if (elements.canvasVideoLightbox.classList.contains("is-open")) {
-        if (event.key === "Escape") setCanvasVideoLightbox(false);
-      } else if (elements.imageLightbox.classList.contains("is-open")) {
+      if (elements.imageLightbox.classList.contains("is-open")) {
         if (event.key === "Escape") setImageLightbox(false);
         if (state.imageLightboxMode === "gallery" && event.key === "ArrowLeft") movePreview(-1);
         if (state.imageLightboxMode === "gallery" && event.key === "ArrowRight") movePreview(1);
