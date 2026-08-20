@@ -63,6 +63,28 @@ assert.match(html, /Promise\.all\(\[\s*imageKey \? requestModelsWithKey\(endpoin
 assert.match(html, /function scheduleAutomaticModelRefresh\(\)/);
 assert.match(html, /function hasAnyModelKey\(\)/);
 assert.match(html, /window\.setTimeout\(\(\) => \{[\s\S]+?loadModels\(\{ persist: true, showErrorToast: false \}\);[\s\S]+?\}, 700\)/);
+assert.match(html, /CONFIG_RECOVERY_RETRY_DELAY_MS = 1800/);
+assert.match(html, /CONFIG_RECOVERY_DOT_INTERVAL_MS = 420/);
+assert.match(html, /configRecoveryTimerId: 0/);
+assert.match(html, /configRecoveryAnimationTimerId: 0/);
+assert.match(html, /configIssueKind: ""/);
+assert.match(html, /function isRecoverableNetworkFailure\(error\)/);
+assert.match(html, /JBB_ROUTE_FAILURE_STATUSES\.has\(status\)/);
+assert.match(html, /status >= 520 && status <= 526/);
+assert.match(html, /function scheduleNetworkConfigRecovery\(error\)/);
+assert.match(html, /state\.configIssueKind = "network"/);
+assert.match(html, /loadModels\(\{ persist: true, showErrorToast: false, recoveryProbe: true \}\)/);
+assert.match(html, /function startConfigRecoveryAnimation\(\)/);
+assert.match(html, /state\.configRecoveryDotCount = state\.configRecoveryDotCount >= 3 \? 1 : state\.configRecoveryDotCount \+ 1/);
+assert.match(html, /text = `正在获取\$\{"\."\.repeat/);
+assert.match(html, /text = state\.configIssueKind === "network" \? "网络异常" : "异常配置"/);
+assert.match(html, /status === 524\) return "中转站响应超时，请稍后重试"/);
+assert.doesNotMatch(sourceBetween("function getFailureSummary(error)", "function getDisplayFailureReason(failure)"), /正在检测网络配置|正在检测接口连接/);
+const displayFailureReasonSource = sourceBetween("function getDisplayFailureReason(failure)", "function createFailureRecord(error, task)");
+assert.match(displayFailureReasonSource, /正在检测网络配置\|正在检测接口连接/);
+assert.match(displayFailureReasonSource, /return getFailureSummary\(failure\)/);
+assert.match(html, /if \(scheduleNetworkConfigRecovery\(error\)\)/);
+assert.match(html, /cancelConfigRecovery\(\)/);
 assert.match(html, /toggleKeyVisibility\(elements\.videoApiKey, elements\.videoKeyToggle\)/);
 assert.match(html, /\.function-guide-dot\[data-state="update"\][\s\S]+?background: #ef4444/);
 assert.match(html, /\.function-guide-body::\-webkit-scrollbar[\s\S]+?display: none/);
@@ -149,6 +171,59 @@ assert.match(html, /bindImageDropTarget\(elements\.canvasStage/);
 assert.match(html, /SUPPORTED_IMAGE_TYPES = new Set\(\["image\/png", "image\/jpeg", "image\/webp"\]\)/);
 assert.match(html, /MAX_REFERENCE_IMAGE_BYTES = 50 \* 1024 \* 1024/);
 assert.match(html, /\(png\|jpe\?g\|webp\)/);
+assert.match(html, /hint\.className = "reference-thumb-tooltip"/);
+assert.match(html, /hint\.textContent = "左击放大，右击批注修改"/);
+assert.match(html, /\.reference-item:hover \.reference-thumb-tooltip/);
+assert.match(html, /\.reference-item:focus-within \.reference-thumb-tooltip/);
+assert.doesNotMatch(html, /\.reference-stack-trigger::after/);
+assert.doesNotMatch(html, /\.reference-stack-trigger:hover::after/);
+assert.doesNotMatch(html, /\.reference-stack-trigger:focus-visible::after/);
+assert.match(html, /caption\.className = "reference-index"/);
+assert.match(html, /caption\.textContent = `图片 \$\{index \+ 1\}`/);
+assert.match(html, /caption\.title = file\.name/);
+assert.match(html, /image\.title = "左击放大，右击批注修改"/);
+assert.match(html, /elements\.referenceStackTrigger\.title = "左击放大，右击批注修改"/);
+assert.match(html, /elements\.referenceStackTrigger\.addEventListener\("contextmenu", \(event\) => \{/);
+assert.match(html, /const index = state\.referenceFiles\.length - 1/);
+assert.match(html, /elements\.referenceStackTrigger\.addEventListener\("click", \(\) => \{\s*const index = state\.referenceFiles\.length - 1;\s*if \(index >= 0\) openReferenceImageLightbox\(index, elements\.referenceStackTrigger\);/s);
+assert.match(html, /image\.addEventListener\("click", \(\) => openReferenceImageLightbox\(index, image\)\)/);
+assert.match(html, /image\.addEventListener\("contextmenu", \(event\) => \{\s*event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openReferenceAnnotationEditor\(index, image\);/s);
+assert.match(html, /event\.key === "ContextMenu" \|\| \(event\.shiftKey && event\.key === "F10"\)/);
+const referenceAnnotationSource = sourceBetween("function openReferenceAnnotationEditor(index, returnFocus = null)", "function getPreviewImageContext()");
+assert.match(referenceAnnotationSource, /const file = state\.referenceFiles\[index\]/);
+assert.match(referenceAnnotationSource, /loadCanvasAnnotationImage\(file,/);
+assert.match(referenceAnnotationSource, /origin: "workbench-reference"/);
+assert.match(referenceAnnotationSource, /projectId: state\.activeProjectId/);
+
+const workbenchAnnotationSource = sourceBetween("async function openWorkbenchAnnotationEditor(recordId, returnFocus = null)", "function backfillWorkbenchReferenceFile(index, file)");
+assert.match(workbenchAnnotationSource, /sourceMetadata: metadata/);
+assert.match(workbenchAnnotationSource, /origin: "workbench-result"/);
+
+const referenceBackfillSource = sourceBetween("function backfillWorkbenchReferenceFile(index, file)", "function backfillWorkbenchAnnotationPrompt(prompt)");
+assert.match(referenceBackfillSource, /const hasOriginalReference = Number\.isInteger\(index\) && index >= 0 && index < state\.referenceFiles\.length/);
+assert.match(referenceBackfillSource, /state\.referenceFiles\.splice\(index \+ 1, 0, nextFile\)/);
+assert.doesNotMatch(referenceBackfillSource, /state\.referenceFiles\.splice\(index, 1, nextFile\)/);
+assert.match(referenceBackfillSource, /originalReferenceNumber/);
+assert.match(referenceBackfillSource, /annotationReferenceNumber/);
+
+const annotationSubmitSource = sourceBetween("async function submitCanvasAnnotationEdit()", "async function collectCanvasReferenceFiles(generateNodeId)");
+assert.match(annotationSubmitSource, /session\.origin === "workbench-reference"/);
+assert.match(annotationSubmitSource, /const referencePair = backfillWorkbenchReferenceFile\(session\.sourceIndex, revisedFile\)/);
+assert.match(annotationSubmitSource, /referencePair\.originalReferenceNumber/);
+assert.match(annotationSubmitSource, /referencePair\.annotationReferenceNumber/);
+assert.match(annotationSubmitSource, /backfillWorkbenchAnnotationPrompt\(revisedPrompt\)/);
+assert.match(annotationSubmitSource, /session\.origin === "workbench-result"/);
+assert.match(annotationSubmitSource, /createWorkbenchAnnotationEditConfig\(/);
+assert.match(annotationSubmitSource, /state\.activeTasks\.set\(task\.id, task\)/);
+assert.match(annotationSubmitSource, /notifyNewTasks\(\[task\], `批注修改 V\$\{revisionIndex\} 已开始`\)/);
+assert.match(annotationSubmitSource, /enqueueGenerationTasks\(\[task\]\)/);
+
+const annotationConfigSource = sourceBetween("function createWorkbenchAnnotationEditConfig(session, revisedPrompt, instructions, compositeFile, compositeFilename, annotationId, revisionIndex)", "async function submitCanvasAnnotationEdit()");
+assert.match(annotationConfigSource, /const metadata = session\?\.sourceMetadata \|\| \{\}/);
+assert.match(annotationConfigSource, /model = String\(metadata\.model \|\| "gpt-image-2"\)/);
+assert.match(annotationConfigSource, /referenceFiles: \[session\.originalFile, compositeFile\]/);
+assert.match(annotationConfigSource, /parentRecordId/);
+assert.match(annotationConfigSource, /source: "annotation-edit"/);
 
 assert.equal((html.match(/backgroundSize = "22px 22px"/g) || []).length, 2);
 assert.doesNotMatch(html, /backgroundSize = `\$\{22 \* scale\}px/);
@@ -213,5 +288,38 @@ assert.doesNotMatch(galleryVirtualizationStyles, /visibility: hidden/);
 assert.doesNotMatch(galleryVirtualizationStyles, /opacity: 0/);
 assert.doesNotMatch(galleryVirtualizationStyles, /pointer-events: none/);
 assert.match(galleryVirtualizationSource, /entry\.isIntersecting \|\| card\.querySelector\("\.result-image\.is-loaded"\)/);
+
+const failedTaskCardSource = sourceBetween("function createFailedTaskCard(failure, index)", "function takeReusableResultImage(recordId)");
+assert.match(failedTaskCardSource, /const displayReason = getDisplayFailureReason\(failure\)/);
+assert.match(failedTaskCardSource, /reason\.textContent = displayReason/);
+assert.doesNotMatch(failedTaskCardSource, /reason\.textContent = failure\.reason/);
+
+const renderPreviewFailureSource = sourceBetween("if (isFailure) {", "} else if (isImage) {");
+assert.match(renderPreviewFailureSource, /const displayReason = getDisplayFailureReason\(metadata\)/);
+assert.match(renderPreviewFailureSource, /previewFailureReason\.textContent = displayReason/);
+assert.doesNotMatch(renderPreviewFailureSource, /previewFailureReason\.textContent = metadata\.reason/);
+
+const canvasFreePositionSource = sourceBetween("function findCanvasFreePosition(item, preferred = {}, options = {})", "function findCanvasGroupFreeOffset(items, target = {}, options = {})");
+assert.match(canvasFreePositionSource, /const preferredSide = String\(options\.preferredSide \|\| "right"\)/);
+assert.match(canvasFreePositionSource, /Math\.hypot\(value\.column \* stepX, value\.row \* stepY\)/);
+assert.match(canvasFreePositionSource, /preferredSide === "left"/);
+assert.match(canvasFreePositionSource, /offsets\.sort\(\(left, right\) => scoreOffset\(left\) - scoreOffset\(right\)\)/);
+
+const canvasGroupFreeOffsetSource = sourceBetween("function findCanvasGroupFreeOffset(items, target = {}, options = {})", "function getCanvasGeneratorInputItems");
+assert.match(canvasGroupFreeOffsetSource, /const collisionItems = Array\.isArray\(options\.items\) \? options\.items : state\.canvasItems/);
+assert.match(canvasGroupFreeOffsetSource, /collisionItems\.every/);
+assert.match(canvasGroupFreeOffsetSource, /candidates\.sort\(\(left, right\) =>/);
+
+assert.match(html, /function getCanvasGeneratorInputPreferredPosition\(generateItem, item, items = state\.canvasItems, edges = state\.canvasEdges\)/);
+assert.match(html, /function placeCanvasGeneratorInputNode\(generateItem, item, items = state\.canvasItems, edges = state\.canvasEdges\)/);
+assert.match(html, /findCanvasFreePosition\(item, preferred, \{ items, preferredSide: "left" \}\)/);
+assert.match(html, /findCanvasFreePosition\(item, preferred, \{ items, preferredSide: "right" \}\)/);
+assert.match(html, /placeCanvasGeneratorInputNode\(pendingTarget, item\)/);
+assert.match(html, /placeCanvasGeneratorInputNode\(generateItem, promptItem\)/);
+assert.match(html, /placeCanvasGeneratorInputNode\(generateItem, imageItem\)/);
+
+const referenceSizeSource = sourceBetween("function initializeCanvasReferenceSize(item, image, node)", "function beginCanvasReferenceResize(event, item, node, corner)");
+assert.match(referenceSizeSource, /findCanvasFreePosition\(item, \{ x: item\.x, y: item\.y \}, \{ preferredSide: "down" \}\)/);
+assert.match(referenceSizeSource, /node\.style\.transform = `translate\(\$\{item\.x\}px, \$\{item\.y\}px\)`/);
 
 process.stdout.write("ui regression tests passed\n");

@@ -6,6 +6,7 @@ const root = path.resolve(__dirname, "..");
 const mainSource = fs.readFileSync(path.join(root, "electron", "main.cjs"), "utf8");
 const preloadSource = fs.readFileSync(path.join(root, "electron", "preload.cjs"), "utf8");
 const rendererSource = fs.readFileSync(path.join(root, "renderer", "index.html"), "utf8");
+const installerSource = fs.readFileSync(path.join(root, "build", "installer.nsh"), "utf8");
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 
 const lockIndex = mainSource.indexOf("app.requestSingleInstanceLock()");
@@ -20,7 +21,7 @@ assert.match(mainSource, /mainWindow\.focus\(\)/);
 assert.match(mainSource, /mainWindow\.moveTop\(\)/);
 assert.doesNotMatch(mainSource, /second-instance[\s\S]{0,300}(?:dialog|MessageBox|showMessageBox)/);
 
-assert.equal(packageJson.version, "0.3.109");
+assert.equal(packageJson.version, "0.3.110");
 assert.equal(packageJson.build.appId, "cn.jbbimg.desktop");
 assert.equal(packageJson.build.win.executableName, "JBBimg");
 assert.equal(packageJson.build.nsis.guid, "7b141cc7-d57c-5908-af89-47db935b5de0");
@@ -30,15 +31,8 @@ assert.equal(packageJson.build.nsis.runAfterFinish, true);
 assert.equal(packageJson.build.nsis.deleteAppDataOnUninstall, false);
 assert.equal(packageJson.build.nsis.shortcutName, "金贝贝生图工具");
 assert.equal(packageJson.build.nsis.uninstallDisplayName, "金贝贝生图工具");
-assert.equal(packageJson.build.directories.output, "../../output/installer-optimized");
-assert.equal(packageJson.scripts["dist:mac"], "npm run build && electron-builder --mac dmg zip --arm64 --x64");
-assert.equal(packageJson.build.mac.category, "public.app-category.graphics-design");
-assert.equal(packageJson.build.mac.icon, "renderer/public/jbb-icon.png");
-assert.equal(packageJson.build.mac.artifactName, "JBBimg-${version}-mac-${arch}.${ext}");
-assert.deepEqual(packageJson.build.mac.target, [
-  { target: "dmg", arch: ["arm64", "x64"] },
-  { target: "zip", arch: ["arm64", "x64"] }
-]);
+assert.equal(packageJson.build.nsis.include, "build/installer.nsh");
+assert.equal(packageJson.build.directories.output, "../../output/installer-optimized/0.3.110");
 assert.deepEqual(packageJson.build.extraResources, [{
   from: "resources/inspiration-seed",
   to: "inspiration-seed",
@@ -55,6 +49,11 @@ assert.match(mainSource, /mainWindow\.webContents\.send\("window:prepare-close"\
 assert.match(mainSource, /ipcMain\.handle\("window:confirm-close"/);
 assert.match(preloadSource, /confirmClose: \(\) => ipcRenderer\.invoke\("window:confirm-close"\)/);
 assert.match(preloadSource, /ipcRenderer\.on\("window:prepare-close", listener\)/);
+assert.match(installerSource, /!macro customInstall/);
+assert.match(installerSource, /\$SYSDIR\\icacls\.exe/);
+assert.match(installerSource, /\$INSTDIR/);
+assert.match(installerSource, /\*S-1-15-2-2:\(OI\)\(CI\)\(RX\)/);
+assert.match(installerSource, /\/T \/C \/Q/);
 const resetFunctionStart = rendererSource.indexOf("async function applyPendingReleaseProfileReset");
 const initializeStart = rendererSource.indexOf("async function initializeApplication");
 const directoryInitialization = rendererSource.indexOf("await initializeDirectoryHandles()", initializeStart);

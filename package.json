@@ -1,6 +1,6 @@
 {
   "name": "jbbimg-desktop",
-  "version": "0.3.109",
+  "version": "0.3.110",
   "private": true,
   "type": "module",
   "description": "金贝贝生图工具桌面版",
@@ -29,21 +29,20 @@
     "test:persistence": "node tests/persistence-regressions.cjs",
     "test:release": "node tests/profile-reset.cjs && node tests/installer-single-instance.cjs && node tests/jbb-route-fallback.cjs && node tests/persistence-regressions.cjs",
     "dist:win": "npm run build && electron-builder --win nsis --x64",
-    "dist:mac": "npm run build && electron-builder --mac dmg zip --arm64 --x64",
     "preview": "vite preview --host 127.0.0.1",
     "start": "electron ."
   },
   "dependencies": {},
   "devDependencies": {
-    "@vitejs/plugin-react": "latest",
-    "concurrently": "latest",
-    "electron": "latest",
-    "electron-builder": "latest",
-    "lucide-react": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "vite": "latest",
-    "wait-on": "latest"
+    "@vitejs/plugin-react": "6.0.5",
+    "concurrently": "10.0.4",
+    "electron": "43.3.0",
+    "electron-builder": "26.15.3",
+    "lucide-react": "1.28.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "vite": "8.2.0",
+    "wait-on": "9.1.0"
   },
   "build": {
     "appId": "cn.jbbimg.desktop",
@@ -51,7 +50,7 @@
     "asar": true,
     "compression": "maximum",
     "directories": {
-      "output": "../../output/installer-optimized"
+      "output": "../../output/installer-optimized/0.3.110"
     },
     "extraResources": [
       {
@@ -90,48 +89,8 @@
       "icon": "renderer/public/jbb-icon.png",
       "artifactName": "JBBimg-Setup-${version}-${arch}.${ext}"
     },
-    "mac": {
-      "category": "public.app-category.graphics-design",
-      "icon": "renderer/public/jbb-icon.png",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "JBBimg-${version}-mac-${arch}.${ext}"
-    },
-    "dmg": {
-      "title": "金贝贝生图工具 ${version}",
-      "window": {
-        "width": 540,
-        "height": 380
-      },
-      "contents": [
-        {
-          "x": 150,
-          "y": 190,
-          "type": "file"
-        },
-        {
-          "x": 390,
-          "y": 190,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    },
     "nsis": {
+      "include": "build/installer.nsh",
       "guid": "7b141cc7-d57c-5908-af89-47db935b5de0",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

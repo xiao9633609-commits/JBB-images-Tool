@@ -86,7 +86,8 @@ let mainWindowCloseTimer = null;
 const inspiration = createInspirationService({ dataRoot, logsRoot, onEvent: (payload) => mainWindow?.webContents.send("inspiration:status", payload) });
 const JBB_PRIMARY_BASE_URL = "https://downstream.jbbtoken.cn/v1";
 const JBB_FALLBACK_BASE_URL = "https://cn.jbbt.cc/v1";
-const JBB_BASE_URLS = new Set([JBB_PRIMARY_BASE_URL, JBB_FALLBACK_BASE_URL].map((value) => value.toLowerCase()));
+const JBB_PAGES_BASE_URL = "https://jbbt.pages.dev/v1";
+const JBB_BASE_URLS = new Set([JBB_PRIMARY_BASE_URL, JBB_FALLBACK_BASE_URL, JBB_PAGES_BASE_URL].map((value) => value.toLowerCase()));
 const externalSourceHosts = new Set([
   "image.prompt123.cn", "www.aiwind.org", "opennana.com", "prompthub.xin", "www.prompthub.xin",
   "aiart.pics", "www.aiart.pics", "youmind.com", "www.youmind.com", "prompthero.com", "www.prompthero.com",
@@ -715,7 +716,7 @@ async function createWindow() {
   const initialBounds = getCenteredWindowBounds(display, width, height);
   allowMainWindowClose = false;
   mainWindowClosePending = false;
-  mainWindow = new BrowserWindow({ ...initialBounds, minWidth: sizing.minimumWidth, minHeight: sizing.minimumHeight, frame: false, show: false, backgroundColor: "#f8fafc", title: "金贝贝生图工具 · JBBimg 0.3.109", icon: path.join(__dirname, "../renderer/public/jbb-icon.png"), webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs") } });
+  mainWindow = new BrowserWindow({ ...initialBounds, minWidth: sizing.minimumWidth, minHeight: sizing.minimumHeight, frame: false, show: false, backgroundColor: "#f8fafc", title: "金贝贝生图工具 · JBBimg 0.3.110", icon: path.join(__dirname, "../renderer/public/jbb-icon.png"), webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs") } });
   applyWindowZoom(initialWindowSize.fitScale);
   activeDisplayId = String(display.id);
   mainWindow.on("move", () => scheduleDisplayAdaptation("window-move"));
@@ -753,7 +754,35 @@ async function createWindow() {
     if (focusMainWindowWhenReady) focusExistingMainWindow();
     scheduleWindowMetrics("ready");
   });
-  if (isDev) await mainWindow.loadURL("http://127.0.0.1:5174"); else await mainWindow.loadFile(path.join(__dirname, "../dist/renderer/index.html"));
+  await loadRendererContent();
+}
+
+async function loadRendererContent() {
+  const builtRendererPath = path.join(__dirname, "../dist/renderer/index.html");
+  const sourceRendererPath = path.join(__dirname, "../renderer/index.html");
+  if (isDev) {
+    try {
+      await mainWindow.loadURL("http://127.0.0.1:5174");
+      return;
+    } catch (error) {
+      await fs.mkdir(logsRoot, { recursive: true }).catch(() => {});
+      await fs.appendFile(
+        path.join(logsRoot, "main.log"),
+        `${new Date().toISOString()} dev-renderer-fallback ${error.stack || error.message}\n`
+      ).catch(() => {});
+    }
+  }
+  try {
+    await mainWindow.loadFile(builtRendererPath);
+  } catch (error) {
+    if (app.isPackaged) throw error;
+    await fs.mkdir(logsRoot, { recursive: true }).catch(() => {});
+    await fs.appendFile(
+      path.join(logsRoot, "main.log"),
+      `${new Date().toISOString()} source-renderer-fallback ${error.stack || error.message}\n`
+    ).catch(() => {});
+    await mainWindow.loadFile(sourceRendererPath);
+  }
 }
 function registerIpc() {
   ipcMain.handle("window:minimize", () => mainWindow?.minimize()); ipcMain.handle("window:toggle-maximize", () => { if (mainWindow?.isMaximized()) mainWindow.restore(); else mainWindow?.maximize(); scheduleWindowMetrics("window-toggle-maximize"); return { maximized: mainWindow?.isMaximized() ?? false }; }); ipcMain.handle("window:close", () => mainWindow?.close()); ipcMain.handle("window:confirm-close", () => { if (!mainWindowClosePending || !mainWindow || mainWindow.isDestroyed()) return false; if (mainWindowCloseTimer) clearTimeout(mainWindowCloseTimer); mainWindowCloseTimer = null; allowMainWindowClose = true; mainWindow.close(); return true; }); ipcMain.handle("window:get-state", () => ({ maximized: mainWindow?.isMaximized() ?? false })); ipcMain.handle("window:get-metrics", () => getWindowMetrics("requested"));
