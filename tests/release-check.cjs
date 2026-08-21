@@ -23,8 +23,8 @@ assert.equal(compareVersions("1.0", "0.9.999"), 1);
 assert.equal(isAllowedReleaseUrl(RELEASES_URL), true);
 assert.equal(isAllowedReleaseUrl("https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.111"), true);
 assert.equal(isAllowedReleaseUrl("https://example.com/untrusted.exe"), false);
-assert.equal(isAllowedInstallerUrl(installerUrl), true);
-assert.equal(isAllowedInstallerUrl("https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.109/source.zip"), false);
+assert.equal(isAllowedInstallerUrl(installerUrl, "win32"), true);
+assert.equal(isAllowedInstallerUrl("https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.109/source.zip", "win32"), false);
 
 const assets = [
   {
@@ -81,4 +81,5 @@ fetchLatestRelease({
   console.error(error);
   process.exitCode = 1;
 });
+
 
