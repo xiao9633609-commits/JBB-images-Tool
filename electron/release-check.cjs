@@ -48,9 +48,9 @@ function installerFromUrl(url, size = 0, name = "", platform = process.platform)
   };
 }
 
-function selectInstallerAsset(assets = []) {
+function selectInstallerAsset(assets = [], platform = process.platform) {
   return (Array.isArray(assets) ? assets : [])
-    .map((asset) => installerFromUrl(asset?.browser_download_url || asset?.url, asset?.size, asset?.name))
+    .map((asset) => installerFromUrl(asset?.browser_download_url || asset?.url, asset?.size, asset?.name, platform))
     .filter(Boolean)
     .sort((left, right) => Number(right.size || 0) - Number(left.size || 0))[0] || null;
 }

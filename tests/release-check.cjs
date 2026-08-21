@@ -35,7 +35,7 @@ const assets = [
   { name: "JBBimg-Setup-0.3.111-x64.exe", browser_download_url: installerUrl, size: 100 },
   { name: "JBBimg-Setup-0.3.111-x64.exe", browser_download_url: "https://example.com/untrusted.exe", size: 500 }
 ];
-assert.equal(selectInstallerAsset(assets).size, 100);
+assert.equal(selectInstallerAsset(assets, "win32").size, 100);
 
 const available = parseReleaseMetadata({
   version: "0.3.111",
@@ -81,5 +81,6 @@ fetchLatestRelease({
   console.error(error);
   process.exitCode = 1;
 });
+
 
 
