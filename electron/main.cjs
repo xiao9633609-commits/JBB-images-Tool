@@ -47,6 +47,7 @@ let mainWindow;
 let focusMainWindowWhenReady = false;
 let releaseProfileResetPending = false;
 let latestReleaseCheck = null;
+let activeInstallerDownload = null;
 const activeRequests = new Map();
 const SAFE_CONNECT_RETRY_CODES = new Set([
   "ERR_PROXY_CONNECTION_FAILED",
@@ -91,6 +92,7 @@ const JBB_BASE_URLS = new Set([JBB_PRIMARY_BASE_URL, JBB_FALLBACK_BASE_URL, JBB_
 const externalSourceHosts = new Set([
   "image.prompt123.cn", "www.aiwind.org", "opennana.com", "prompthub.xin", "www.prompthub.xin",
   "aiart.pics", "www.aiart.pics", "youmind.com", "www.youmind.com", "prompthero.com", "www.prompthero.com",
+  "downstream.jbbtoken.cn",
   "2slides.com", "www.2slides.com"
 ]);
 
@@ -716,7 +718,7 @@ async function createWindow() {
   const initialBounds = getCenteredWindowBounds(display, width, height);
   allowMainWindowClose = false;
   mainWindowClosePending = false;
-  mainWindow = new BrowserWindow({ ...initialBounds, minWidth: sizing.minimumWidth, minHeight: sizing.minimumHeight, frame: false, show: false, backgroundColor: "#f8fafc", title: "金贝贝生图工具 · JBBimg 0.3.110", icon: path.join(__dirname, "../renderer/public/jbb-icon.png"), webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs") } });
+  mainWindow = new BrowserWindow({ ...initialBounds, minWidth: sizing.minimumWidth, minHeight: sizing.minimumHeight, frame: false, show: false, backgroundColor: "#f8fafc", title: "金贝贝生图工具 · JBBimg 0.3.111", icon: path.join(__dirname, "../renderer/public/jbb-icon.png"), webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, "preload.cjs") } });
   applyWindowZoom(initialWindowSize.fitScale);
   activeDisplayId = String(display.id);
   mainWindow.on("move", () => scheduleDisplayAdaptation("window-move"));
@@ -762,7 +764,8 @@ async function loadRendererContent() {
   const sourceRendererPath = path.join(__dirname, "../renderer/index.html");
   if (isDev) {
     try {
-      await mainWindow.loadURL("http://127.0.0.1:5174");
+      const devQuery = process.argv.includes("--test-update") ? "?test-update=1" : "";
+      await mainWindow.loadURL(`http://127.0.0.1:5174/${devQuery}`);
       return;
     } catch (error) {
       await fs.mkdir(logsRoot, { recursive: true }).catch(() => {});
@@ -835,6 +838,81 @@ function registerIpc() {
     if (!isAllowedReleaseUrl(target)) return { ok: false, error: "安装包地址校验失败" };
     await shell.openExternal(target);
     return { ok: true, url: target };
+  });
+  ipcMain.handle("release:download-installer", async (event) => {
+    if (activeInstallerDownload) return { ok: false, error: "安装包正在下载中" };
+    if (!latestReleaseCheck) {
+      try {
+        latestReleaseCheck = await fetchLatestRelease({
+          currentVersion: app.getVersion(),
+          fetchImpl: (url, options) => net.fetch(url, options)
+        });
+      } catch (error) {
+        return { ok: false, error: error.message || "无法获取最新版本信息" };
+      }
+    }
+    const installer = latestReleaseCheck?.installer || null;
+    if (!installer?.url || !isAllowedReleaseUrl(installer.url)) return { ok: false, error: "没有可用的安装包下载地址" };
+    const filename = path.basename(decodeURIComponent(new URL(installer.url).pathname)) || "JBBimg-update.exe";
+    const downloadDirectory = process.platform === "darwin"
+      ? path.join(app.getPath("downloads"), "JBBimg")
+      : path.dirname(process.execPath);
+    await fs.mkdir(downloadDirectory, { recursive: true });
+    const targetPath = path.join(downloadDirectory, filename);
+    activeInstallerDownload = { canceled: false };
+    try {
+      let releaseAssetSize = Number(installer.size || 0);
+      if (!releaseAssetSize && latestReleaseCheck?.latestVersion) {
+        try {
+          const assetResponse = await net.fetch(`https://api.github.com/repos/xiao9633609-commits/JBB-images-Tool/releases/tags/v${latestReleaseCheck.latestVersion}`, {
+            headers: { Accept: "application/vnd.github+json", "User-Agent": `JBBimg/${app.getVersion()}` },
+            cache: "no-store"
+          });
+          if (assetResponse.ok) {
+            const releasePayload = await assetResponse.json();
+            const matchingAsset = Array.isArray(releasePayload?.assets)
+              ? releasePayload.assets.find((asset) => String(asset?.name || "") === filename)
+              : null;
+            releaseAssetSize = Number(matchingAsset?.size || 0);
+          }
+        } catch {}
+      }
+      const response = await net.fetch(installer.url, { redirect: "follow" });
+      if (!response.ok || !response.body) throw new Error(`安装包下载失败，HTTP ${response.status}`);
+      const total = Number(response.headers.get("content-length") || releaseAssetSize || 0);
+      const chunks = [];
+      let received = 0;
+      const reader = response.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value?.length) {
+          chunks.push(Buffer.from(value));
+          received += value.length;
+          event.sender.send("release:download-progress", { received, total, percent: total ? Math.min(100, received / total * 100) : 0 });
+        }
+      }
+      await fs.writeFile(targetPath, Buffer.concat(chunks));
+      event.sender.send("release:download-progress", { received, total: total || received, percent: 100, complete: true, path: targetPath });
+      return { ok: true, path: targetPath, size: received };
+    } catch (error) {
+      await fs.rm(targetPath, { force: true }).catch(() => {});
+      return { ok: false, error: error.message || "安装包下载失败" };
+    } finally {
+      activeInstallerDownload = null;
+    }
+  });
+  ipcMain.handle("release:install-downloaded", async (_event, input = {}) => {
+    const targetPath = String(input.path || "");
+    const allowedDirectory = process.platform === "darwin"
+      ? path.join(app.getPath("downloads"), "JBBimg")
+      : path.dirname(process.execPath);
+    if (!targetPath || path.dirname(targetPath).toLowerCase() !== allowedDirectory.toLowerCase()) {
+      return { ok: false, error: "安装包路径校验失败" };
+    }
+    await shell.openPath(targetPath);
+    setTimeout(() => fs.rm(targetPath, { force: true }).catch(() => {}), 60000);
+    return { ok: true };
   });
   ipcMain.handle("storage:read-json", (_event, name, fallback) => storage.readJson(name, fallback)); ipcMain.handle("storage:write-json", (_event, name, value) => storage.writeJson(name, value)); ipcMain.handle("storage:read-text", (_event, name, fallback) => storage.readText(name, fallback)); ipcMain.handle("storage:write-text", (_event, name, value) => storage.writeText(name, value)); ipcMain.handle("storage:remove-data", (_event, name) => storage.removeData(name)); ipcMain.handle("storage:read-binary", (_event, input) => storage.readBinary(input)); ipcMain.handle("storage:write-binary", (_event, input) => storage.writeBinary(input)); ipcMain.handle("storage:remove-binary", async (_event, input) => { const removed = await storage.removeBinary(input); if (String(input?.mediaType || "image").toLowerCase() === "image") await removeImageThumbnail(input?.filename).catch(() => {}); return removed; }); ipcMain.handle("storage:exists-binary", (_event, input) => storage.existsBinary(input)); ipcMain.handle("storage:get-roots", () => storage.getRoots());
   ipcMain.handle("storage:choose-output-directory", async () => {

@@ -1,8 +1,12 @@
 {
-  "version": "0.3.110",
-  "releaseName": "JBBimg 0.3.110",
-  "publishedAt": "2026-08-15T00:00:00Z",
-  "releaseUrl": "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.110",
-  "installerName": "JBBimg-Setup-0.3.110-x64.exe",
-  "installerUrl": "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.110/JBBimg-Setup-0.3.110-x64.exe"
+  "version": "0.3.111",
+  "releaseName": "JBBimg 0.3.111",
+  "publishedAt": "2026-08-21T00:00:00Z",
+  "releaseUrl": "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.111",
+  "installerName": "JBBimg-Setup-0.3.111-x64.exe",
+  "installerUrl": "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.111/JBBimg-Setup-0.3.111-x64.exe",
+  "macArm64InstallerName": "mac-arm64.dmg",
+  "macArm64InstallerUrl": "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.111/mac-arm64.dmg",
+  "macX64InstallerName": "mac-x64.dmg",
+  "macX64InstallerUrl": "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/download/v0.3.111/mac-x64.dmg"
 }

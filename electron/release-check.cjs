@@ -26,19 +26,20 @@ function isAllowedReleaseUrl(value) {
     || source.startsWith(ALLOWED_DOWNLOAD_PREFIX);
 }
 
-function isAllowedInstallerUrl(value) {
+function isAllowedInstallerUrl(value, platform = process.platform) {
   const source = String(value || "");
   if (!source.startsWith(ALLOWED_DOWNLOAD_PREFIX)) return false;
   try {
     const filename = decodeURIComponent(new URL(source).pathname.split("/").pop() || "");
+    if (platform === "darwin") return /\.dmg$/i.test(filename);
     return /\.exe$/i.test(filename) && /setup|installer/i.test(filename);
   } catch {
     return false;
   }
 }
 
-function installerFromUrl(url, size = 0, name = "") {
-  if (!isAllowedInstallerUrl(url)) return null;
+function installerFromUrl(url, size = 0, name = "", platform = process.platform) {
+  if (!isAllowedInstallerUrl(url, platform)) return null;
   const filename = name || decodeURIComponent(new URL(url).pathname.split("/").pop() || "");
   return {
     name: String(filename),
@@ -71,7 +72,7 @@ function buildReleaseResult({ currentVersion, latestVersion, releaseName, publis
   };
 }
 
-function parseReleaseMetadata(metadata, currentVersion) {
+function parseReleaseMetadata(metadata, currentVersion, platform = process.platform, arch = process.arch) {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     throw new Error("版本文件格式无效");
   }
@@ -82,9 +83,10 @@ function parseReleaseMetadata(metadata, currentVersion) {
     publishedAt: metadata.publishedAt,
     releaseUrl: metadata.releaseUrl,
     installer: installerFromUrl(
-      metadata.installerUrl || metadata.installer?.url,
-      metadata.installerSize || metadata.installer?.size,
-      metadata.installerName || metadata.installer?.name
+      platform === "darwin" ? (arch === "arm64" ? metadata.macArm64InstallerUrl : metadata.macX64InstallerUrl) : (metadata.installerUrl || metadata.installer?.url),
+      platform === "darwin" ? (arch === "arm64" ? metadata.macArm64InstallerSize : metadata.macX64InstallerSize) : (metadata.installerSize || metadata.installer?.size),
+      platform === "darwin" ? (arch === "arm64" ? metadata.macArm64InstallerName : metadata.macX64InstallerName) : (metadata.installerName || metadata.installer?.name),
+      platform
     ),
     source: "metadata"
   });
@@ -123,7 +125,7 @@ async function fetchWithTimeout(fetchImpl, url, options, timeoutMs) {
   }
 }
 
-async function fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs }) {
+async function fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs, platform, arch }) {
   const response = await fetchWithTimeout(fetchImpl, RELEASE_METADATA_URL, {
     headers: {
       Accept: "application/json",
@@ -136,7 +138,7 @@ async function fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs }) {
     error.status = response.status;
     throw error;
   }
-  return parseReleaseMetadata(await response.json(), currentVersion);
+  return parseReleaseMetadata(await response.json(), currentVersion, platform, arch);
 }
 
 async function fetchReleasePage({ fetchImpl, currentVersion, timeoutMs }) {
@@ -156,11 +158,11 @@ async function fetchReleasePage({ fetchImpl, currentVersion, timeoutMs }) {
   return parseReleasePage({ url: response.url, html: await response.text() }, currentVersion);
 }
 
-async function fetchLatestRelease({ fetchImpl = fetch, currentVersion, timeoutMs = 20000, attempts = 2 } = {}) {
+async function fetchLatestRelease({ fetchImpl = fetch, currentVersion, timeoutMs = 20000, attempts = 2, platform = process.platform, arch = process.arch } = {}) {
   let lastError;
   for (let attempt = 0; attempt < Math.max(1, attempts); attempt += 1) {
     try {
-      return await fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs });
+      return await fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs, platform, arch });
     } catch (metadataError) {
       try {
         return await fetchReleasePage({ fetchImpl, currentVersion, timeoutMs });
