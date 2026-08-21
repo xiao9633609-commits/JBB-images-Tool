@@ -43,7 +43,7 @@ const available = parseReleaseMetadata({
   publishedAt: "2026-08-13T00:00:00Z",
   releaseUrl: "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.111",
   installerUrl
-}, "0.3.109");
+}, "0.3.109", "win32");
 assert.equal(available.updateAvailable, true);
 assert.equal(available.installer.name, "JBBimg-Setup-0.3.111-x64.exe");
 assert.equal(available.source, "metadata");
@@ -51,7 +51,7 @@ assert.equal(available.source, "metadata");
 const latest = parseReleasePage({
   url: RELEASES_URL,
   html: '<a href="/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109">JBBimg-Setup-0.3.109-x64.exe</a>'
-}, "0.3.109");
+}, "0.3.109", "win32");
 assert.equal(latest.updateAvailable, false);
 assert.equal(latest.installer.name, "JBBimg-Setup-0.3.109-x64.exe");
 assert.equal(latest.releaseUrl, "https://github.com/xiao9633609-commits/JBB-images-Tool/releases/tag/v0.3.109");
@@ -81,6 +81,7 @@ fetchLatestRelease({
   console.error(error);
   process.exitCode = 1;
 });
+
 
 
 

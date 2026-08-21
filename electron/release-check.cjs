@@ -92,7 +92,7 @@ function parseReleaseMetadata(metadata, currentVersion, platform = process.platf
   });
 }
 
-function parseReleasePage({ url, html = "" }, currentVersion) {
+function parseReleasePage({ url, html = "" }, currentVersion, platform = process.platform) {
   const pageSource = String(html);
   const tagMatch = pageSource.match(/\/xiao9633609-commits\/JBB-images-Tool\/releases\/tag\/v?(\d+(?:\.\d+){1,3})/i);
   const latestVersion = normalizeVersion(tagMatch?.[1] || url);
@@ -110,7 +110,7 @@ function parseReleasePage({ url, html = "" }, currentVersion) {
     currentVersion,
     latestVersion,
     releaseUrl,
-    installer: installerFromUrl(installerUrl, 0, installerName),
+    installer: installerFromUrl(installerUrl, 0, installerName, platform),
     source: "release-page"
   });
 }
@@ -141,7 +141,7 @@ async function fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs, platf
   return parseReleaseMetadata(await response.json(), currentVersion, platform, arch);
 }
 
-async function fetchReleasePage({ fetchImpl, currentVersion, timeoutMs }) {
+async function fetchReleasePage({ fetchImpl, currentVersion, timeoutMs, platform }) {
   const response = await fetchWithTimeout(fetchImpl, RELEASES_URL, {
     headers: {
       Accept: "text/html",
@@ -155,7 +155,7 @@ async function fetchReleasePage({ fetchImpl, currentVersion, timeoutMs }) {
     error.status = response.status;
     throw error;
   }
-  return parseReleasePage({ url: response.url, html: await response.text() }, currentVersion);
+  return parseReleasePage({ url: response.url, html: await response.text() }, currentVersion, platform);
 }
 
 async function fetchLatestRelease({ fetchImpl = fetch, currentVersion, timeoutMs = 20000, attempts = 2, platform = process.platform, arch = process.arch } = {}) {
@@ -165,7 +165,7 @@ async function fetchLatestRelease({ fetchImpl = fetch, currentVersion, timeoutMs
       return await fetchStaticMetadata({ fetchImpl, currentVersion, timeoutMs, platform, arch });
     } catch (metadataError) {
       try {
-        return await fetchReleasePage({ fetchImpl, currentVersion, timeoutMs });
+        return await fetchReleasePage({ fetchImpl, currentVersion, timeoutMs, platform });
       } catch (releasePageError) {
         lastError = releasePageError;
         const retryable = releasePageError?.name === "AbortError"
