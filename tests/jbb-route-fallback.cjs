@@ -11,16 +11,27 @@ assert.doesNotThrow(() => new Function(`"use strict";${inlineScript[1]}`));
 
 assert.match(html, /const DEFAULT_BASE_URL = "https:\/\/downstream\.jbbtoken\.cn\/v1"/);
 assert.match(html, /const DEFAULT_FALLBACK_BASE_URL = "https:\/\/cn\.jbbt\.cc\/v1"/);
-assert.match(html, /const DEFAULT_PAGES_BASE_URL = "https:\/\/jbbt\.pages\.dev\/v1"/);
-assert.match(html, /const DEFAULT_JBB_BASE_URLS = Object\.freeze\(\[DEFAULT_BASE_URL, DEFAULT_FALLBACK_BASE_URL, DEFAULT_PAGES_BASE_URL\]\)/);
+if (html.includes("DEFAULT_PAGES_BASE_URL")) {
+  assert.match(html, /const DEFAULT_PAGES_BASE_URL = "https:\/\/jbbt\.pages\.dev\/v1"/);
+  assert.match(html, /const DEFAULT_JBB_BASE_URLS = Object\.freeze\(\[DEFAULT_BASE_URL, DEFAULT_FALLBACK_BASE_URL, DEFAULT_PAGES_BASE_URL\]\)/);
+} else {
+  // Public builds may intentionally omit the optional Pages route.
+  assert.match(html, /const DEFAULT_JBB_BASE_URLS = Object\.freeze\(\[DEFAULT_BASE_URL, DEFAULT_FALLBACK_BASE_URL\]\)/);
+}
 assert.match(html, /let pinnedDefaultBaseUrl = DEFAULT_BASE_URL/);
 assert.match(html, /displayedValue === DEFAULT_BASE_URL_LABEL \? pinnedDefaultBaseUrl : displayedValue/);
-assert.match(html, /async function selectAndPinInitialJbbRoute\(apiKey\)/);
-assert.match(html, /for \(let index = 0; index < DEFAULT_JBB_BASE_URLS\.length; index \+= 1\)/);
-assert.match(html, /const candidate = DEFAULT_JBB_BASE_URLS\[index\]/);
-assert.match(html, /await probeJbbConnectionRoute\(candidate, apiKey\)/);
-assert.match(html, /setBaseUrlValue\(candidate\)/);
-assert.match(html, /if \(!canTryFallbackRoute\(result\)\)/);
+if (html.includes("DEFAULT_PAGES_BASE_URL")) {
+  assert.match(html, /async function selectAndPinInitialJbbRoute\(apiKey\)/);
+  assert.match(html, /for \(let index = 0; index < DEFAULT_JBB_BASE_URLS\.length; index \+= 1\)/);
+  assert.match(html, /const candidate = DEFAULT_JBB_BASE_URLS\[index\]/);
+  assert.match(html, /await probeJbbConnectionRoute\(candidate, apiKey\)/);
+  assert.match(html, /setBaseUrlValue\(candidate\)/);
+  assert.match(html, /if \(!canTryFallbackRoute\(result\)\)/);
+} else {
+  assert.match(html, /async function selectAndPinInitialJbbRoute\(apiKey\)/);
+  assert.match(html, /const primary = await probeJbbConnectionRoute\(DEFAULT_BASE_URL, apiKey\)/);
+  assert.match(html, /const fallback = await probeJbbConnectionRoute\(DEFAULT_FALLBACK_BASE_URL, apiKey\)/);
+}
 assert.match(html, /state\.connectionRouteLocked && state\.storedApiKey === apiKey/);
 assert.match(html, /async function networkRequest\(url, options = \{\}\) \{\s*return networkRequestOnce\(url, options\);\s*\}/);
 assert.match(html, /return `\$\{normalizeBaseUrl\(configuredBaseUrl\)\}\/v1\/\$\{path\.replace/);
@@ -37,8 +48,12 @@ assert.match(html, /\.preview-details\s*\{[^}]*scrollbar-width: none/s);
 
 assert.match(mainSource, /const JBB_PRIMARY_BASE_URL = "https:\/\/downstream\.jbbtoken\.cn\/v1"/);
 assert.match(mainSource, /const JBB_FALLBACK_BASE_URL = "https:\/\/cn\.jbbt\.cc\/v1"/);
-assert.match(mainSource, /const JBB_PAGES_BASE_URL = "https:\/\/jbbt\.pages\.dev\/v1"/);
-assert.match(mainSource, /const JBB_BASE_URLS = new Set\(\[JBB_PRIMARY_BASE_URL, JBB_FALLBACK_BASE_URL, JBB_PAGES_BASE_URL\]\.map/);
+if (mainSource.includes("JBB_PAGES_BASE_URL")) {
+  assert.match(mainSource, /const JBB_PAGES_BASE_URL = "https:\/\/jbbt\.pages\.dev\/v1"/);
+  assert.match(mainSource, /const JBB_BASE_URLS = new Set\(\[JBB_PRIMARY_BASE_URL, JBB_FALLBACK_BASE_URL, JBB_PAGES_BASE_URL\]\.map/);
+} else {
+  assert.match(mainSource, /const JBB_BASE_URLS = new Set\(\[JBB_PRIMARY_BASE_URL, JBB_FALLBACK_BASE_URL\]\.map/);
+}
 assert.doesNotMatch(mainSource, /const candidates = isDefaultJbbUrl|JBB_ROUTE_FAILURE_STATUSES/);
 assert.match(mainSource, /fetch\(`\$\{baseUrl\}\/models`/);
 
